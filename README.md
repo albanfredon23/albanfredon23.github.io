@@ -10,4 +10,8 @@ Chaque section anime en direct le mécanisme qu'elle décrit :
 - **AIO v3** : effondrement des gradients sous argmax, rétabli par Gumbel-Softmax + STE.
 - **AIO-SecEng** : masquage PII validé par l'algorithme de Luhn.
 
+Section « Projets en ligne » : liens vers les sites publiés sur GitHub Pages
+([AIOTECH](https://albanfredon23.github.io/aiotech/), [Aiosearch](https://albanfredon23.github.io/Aiosearch/),
+[AIOTrade](https://albanfredon23.github.io/aiotrade/), [Aiogps](https://albanfredon23.github.io/Aiogps/)).
+
 Page unique, sans build : `index.html` + Three.js r128 chargé depuis cdnjs.

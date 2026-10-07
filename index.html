@@ -81,6 +81,12 @@ textarea{width:100%;min-height:5.5rem;resize:vertical;font:400 .85rem/1.5 var(--
 .tap div{background:var(--ink-2);padding:.8rem .9rem;display:grid;gap:.25rem;min-width:0}
 .tap b{font:500 .74rem/1.3 var(--f-mono);color:var(--amber);letter-spacing:.08em}
 .tap span{font-size:.9rem}
+.sites{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:0;padding:0;list-style:none}
+.sites li{background:var(--ink-2);padding:1rem 1.1rem;display:grid;gap:.4rem;align-content:start;min-width:0}
+.sites .src{font:400 .72rem/1.3 var(--f-mono);color:var(--amber);letter-spacing:.08em;text-transform:uppercase}
+.sites p{font-size:.92rem;color:var(--muted)}
+.sites a{font:500 .85rem/1.4 var(--f-mono);color:var(--cyan);overflow-wrap:anywhere;text-underline-offset:3px}
+.sites a:hover{color:var(--fg)}
 .slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem}
 .slots div{border:1px dashed var(--line);padding:1rem;display:grid;gap:.35rem;min-width:0}
 .slots p{color:var(--muted);font-size:.9rem}
@@ -333,6 +339,27 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
         <div><b>3 · PRUNING</b><span>Eliminate inconsistent approaches</span></div>
         <div><b>4 · CAUSAL CHAIN</b><span>Lay out the resolution step by step</span></div>
       </div>
+    </div>
+  </section>
+
+  <section data-scene="0" data-dim="1" id="projets">
+    <div class="panel wide">
+      <p class="eyebrow" data-l="fr">Projets en ligne</p>
+      <p class="eyebrow" data-l="en">Live projects</p>
+      <h2 data-l="fr">Les sites des projets, publiés depuis GitHub</h2>
+      <h2 data-l="en">Project sites, published from GitHub</h2>
+      <ul class="sites" data-l="fr">
+        <li><span class="src">AIOTECH</span><h3>Middleware Green AI et SCG</h3><p>Le pipeline en 3D, une démonstration en direct et le calculateur d'économies.</p><a href="https://albanfredon23.github.io/aiotech/">albanfredon23.github.io/aiotech/</a></li>
+        <li><span class="src">Aiosearch</span><h3>Moteur de recherche cognitif</h3><p>Chaque lecture de la requête suit sa trajectoire de preuves ; réponses classées par fiabilité.</p><a href="https://albanfredon23.github.io/Aiosearch/">albanfredon23.github.io/Aiosearch/</a></li>
+        <li><span class="src">AIOTrade</span><h3>Garde-fou de risque pour le trading</h3><p>Faisceau de trajectoires, élagage SCG sous mandat de risque et registre d'audit chaîné.</p><a href="https://albanfredon23.github.io/aiotrade/">albanfredon23.github.io/aiotrade/</a></li>
+        <li><span class="src">Aiogps</span><h3>Calcul adaptatif pour LLM (AIOTECH44)</h3><p>Porte de complexité, faisceau TAP, sphère SCG et mémoire différentielle, avec démo interactive.</p><a href="https://albanfredon23.github.io/Aiogps/">albanfredon23.github.io/Aiogps/</a></li>
+      </ul>
+      <ul class="sites" data-l="en">
+        <li><span class="src">AIOTECH</span><h3>Green AI middleware and SCG</h3><p>The pipeline in 3D, a live demo and the savings calculator.</p><a href="https://albanfredon23.github.io/aiotech/">albanfredon23.github.io/aiotech/</a></li>
+        <li><span class="src">Aiosearch</span><h3>Cognitive search engine</h3><p>Each reading of the query follows its own evidence path; answers ranked by reliability.</p><a href="https://albanfredon23.github.io/Aiosearch/">albanfredon23.github.io/Aiosearch/</a></li>
+        <li><span class="src">AIOTrade</span><h3>Risk guardrail for trading</h3><p>Trajectory bundle, SCG pruning under a risk mandate and a hash-chained audit ledger.</p><a href="https://albanfredon23.github.io/aiotrade/">albanfredon23.github.io/aiotrade/</a></li>
+        <li><span class="src">Aiogps</span><h3>Adaptive compute for LLMs (AIOTECH44)</h3><p>Complexity gate, TAP beam, SCG sphere and differential memory, with an interactive demo.</p><a href="https://albanfredon23.github.io/Aiogps/">albanfredon23.github.io/Aiogps/</a></li>
+      </ul>
     </div>
   </section>
 
