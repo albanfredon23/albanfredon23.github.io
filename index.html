@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="fr" data-lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Alban Fredon, ingénieur R&amp;D ML : fusion GNSS/INS, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
+<title>Alban · Trajectoires admissibles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: fixed WebGL stage behind a left text rail; each section drives one live scene. Single dark avionics world, by choice. */
+:root{
+  --ink:#0c1219;
+  --ink-2:#121b25;
+  --panel:rgba(12,18,25,.82);
+  --line:#253445;
+  --fg:#dbe3ea;
+  --muted:#8b9bab;
+  --amber:#f0a63a;
+  --cyan:#62c2d6;
+  --red:#e0554a;
+  --f-display:"Chakra Petch","Rajdhani","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --step--1:.8rem; --step-0:1rem; --step-1:1.2rem; --step-2:clamp(1.7rem,3.2vw,2.5rem); --step-3:clamp(3rem,8vw,5.8rem);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--fg)}
+body{font:400 var(--step-0)/1.62 var(--f-body);-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.veil{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,var(--ink) 0%,rgba(12,18,25,.88) 32%,rgba(12,18,25,0) 60%)}
+.no-gl #stage{display:none}
+main{position:relative;z-index:2;padding-inline:clamp(16px,5vw,80px)}
+section{min-height:100vh;display:flex;align-items:center;padding-block:12vh}
+.panel{width:100%;max-width:33rem;min-width:0;display:grid;gap:1.15rem}
+.panel.wide{max-width:64rem;background:var(--panel);border:1px solid var(--line);padding:clamp(1.25rem,3vw,2.25rem);backdrop-filter:blur(8px)}
+.eyebrow{font:500 var(--step--1)/1.3 var(--f-mono);text-transform:uppercase;letter-spacing:.14em;color:var(--amber);margin:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;line-height:1.08}
+h1{font-size:var(--step-3);letter-spacing:-.01em}
+h1 .sub{display:block;font-size:var(--step-2);color:var(--muted);font-weight:500;margin-top:.6rem;line-height:1.15}
+h2{font-size:var(--step-2)}
+h3{font-size:var(--step-1);font-weight:500}
+p{margin:0;max-width:62ch}
+.lede{font-size:var(--step-1);line-height:1.5}
+.cap{font-size:var(--step--1);color:var(--muted)}
+.formula{font:400 .82rem/1.7 var(--f-mono);color:var(--fg);background:var(--ink-2);border:1px solid var(--line);padding:.75rem .9rem;overflow-x:auto;white-space:pre}
+.hud{display:grid;grid-template-columns:auto 1fr;gap:.3rem 1.2rem;font:400 .82rem/1.5 var(--f-mono);font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:.8rem}
+.hud dt{color:var(--muted)}
+.hud dd{margin:0;min-width:0}
+.pill{display:inline-block;padding:.05rem .5rem;border:1px solid currentColor;font:500 .74rem/1.5 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.ok{color:var(--cyan)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.meta{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;font:400 .85rem/1.4 var(--f-mono);color:var(--muted)}
+.todo{border:1px dashed var(--muted);padding:.05rem .45rem;color:var(--muted)}
+.hint{font:400 .78rem/1.4 var(--f-mono);color:var(--muted);letter-spacing:.04em}
+.sv{display:grid;grid-template-columns:3fr 3fr 4fr 3fr 3fr;gap:.35rem;font:400 .72rem/1.3 var(--f-mono)}
+.sv div{display:grid;gap:.25rem;min-width:0}
+.sv .cells{display:flex;gap:2px}
+.sv .cells i{flex:1;height:.7rem;background:var(--line)}
+.sv .on .cells i{background:var(--cyan)}
+.sv span{color:var(--muted);white-space:nowrap}
+.seg{display:flex;flex-wrap:wrap;gap:.5rem}
+.seg button{font:500 .8rem/1 var(--f-mono);letter-spacing:.04em;color:var(--fg);background:transparent;border:1px solid var(--line);padding:.6rem .8rem;cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.seg button:hover{border-color:var(--muted)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+label{font:500 var(--step--1)/1.3 var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+textarea{width:100%;min-height:5.5rem;resize:vertical;font:400 .85rem/1.5 var(--f-mono);color:var(--fg);background:var(--ink-2);border:1px solid var(--line);padding:.7rem}
+.out{font:400 .85rem/1.6 var(--f-mono);background:var(--ink-2);border:1px solid var(--line);padding:.7rem;overflow-wrap:anywhere;min-height:3rem}
+.out mark{background:transparent;color:var(--cyan);border-bottom:1px solid var(--cyan)}
+.out s{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem 2rem}
+.skills > div{display:grid;gap:.5rem;align-content:start;min-width:0}
+.skills h3{font-size:1.05rem}
+.skills .src{font:400 .72rem/1.3 var(--f-mono);color:var(--amber);letter-spacing:.08em;text-transform:uppercase}
+.skills ul{margin:0;padding:0;list-style:none;display:grid;gap:.3rem;font-size:.92rem;color:var(--fg)}
+.skills li{padding-left:.9rem;position:relative}
+.skills li::before{content:"";position:absolute;left:0;top:.68em;width:.4rem;height:1px;background:var(--muted)}
+.tap{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.tap div{background:var(--ink-2);padding:.8rem .9rem;display:grid;gap:.25rem;min-width:0}
+.tap b{font:500 .74rem/1.3 var(--f-mono);color:var(--amber);letter-spacing:.08em}
+.tap span{font-size:.9rem}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem}
+.slots div{border:1px dashed var(--line);padding:1rem;display:grid;gap:.35rem;min-width:0}
+.slots p{color:var(--muted);font-size:.9rem}
+footer{position:relative;z-index:2;padding:2rem clamp(16px,5vw,80px) 3rem;font:400 .75rem/1.5 var(--f-mono);color:var(--muted)}
+html:not([data-lang="en"]) [data-l="en"],html[data-lang="en"] [data-l="fr"]{display:none!important}
+.langbar{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:5;background:var(--panel);gap:0}
+.langbar button{padding:.5rem .75rem}
+.sv span b{font-weight:400}
+.timeline{display:grid;gap:1.2rem}
+.timeline > div{display:grid;grid-template-columns:4.5rem 1fr;gap:1rem;align-items:baseline}
+.timeline > div > div{display:grid;gap:.3rem;min-width:0}
+.timeline b{font:600 1.4rem/1 var(--f-display);color:var(--amber);white-space:nowrap}
+.timeline p{color:var(--muted)}
+@media (max-width:900px){
+  .veil{background:rgba(12,18,25,.3)}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:1.25rem;backdrop-filter:blur(8px)}
+  section{padding-block:30vh}
+  section:first-child{padding-block:14vh 40vh}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="veil" aria-hidden="true"></div>
+<div class="langbar seg" role="group" aria-label="Langue / Language">
+  <button type="button" data-setlang="fr" aria-pressed="true">FR</button>
+  <button type="button" data-setlang="en" aria-pressed="false">EN</button>
+</div>
+
+<main>
+  <section data-scene="0" id="intro">
+    <div class="panel">
+      <p class="eyebrow" data-l="fr">CV · Ingénieur R&amp;D Senior · ML et architecture logicielle</p>
+      <p class="eyebrow" data-l="en">Résumé · Senior R&amp;D Engineer · ML and software architecture</p>
+      <h1>Alban Fredon
+        <span class="sub" data-l="fr">Des trajectoires admissibles plutôt que des prédictions aveugles.</span>
+        <span class="sub" data-l="en">Admissible trajectories instead of blind predictions.</span></h1>
+      <p class="lede" data-l="fr">Je conçois des middlewares cognitifs et des moteurs de raisonnement neuro-symboliques. Chaque sortie doit respecter des invariants physiques ou logiques, rester traçable et consommer le moins de calcul possible.</p>
+      <p class="lede" data-l="en">I design cognitive middleware and neuro-symbolic reasoning engines. Every output must satisfy physical or logical invariants, stay traceable and use as little compute as possible.</p>
+      <div class="meta">
+        <span data-l="fr">Freelance · 5 ans d'expérience, dont 3 ans exclusivement en IA</span>
+        <span data-l="en">Freelance · 5 years of experience, 3 of them exclusively in AI</span>
+        <span data-l="fr">Français · Anglais</span>
+        <span data-l="en">French · English</span>
+      </div>
+      <p class="cap" data-l="fr">À droite : la courbe ambre est la trajectoire retenue, les tracés rouges sont les alternatives statistiques élaguées.</p>
+      <p class="cap" data-l="en">On the right: the amber curve is the selected trajectory, the red traces are the pruned statistical alternatives.</p>
+      <p class="hint" data-l="fr">Faites défiler. Chaque section anime en direct le mécanisme qu'elle décrit.</p>
+      <p class="hint" data-l="en">Scroll down. Each section runs a live animation of the mechanism it describes.</p>
+    </div>
+  </section>
+
+  <section data-scene="1" id="aiogps">
+    <div class="panel">
+      <p class="eyebrow" data-l="fr">Aiogps · Fusion GNSS/INS</p>
+      <p class="eyebrow" data-l="en">Aiogps · GNSS/INS fusion</p>
+      <h2 data-l="fr">Un EKF à 16 états qui refuse les mesures impossibles</h2>
+      <h2 data-l="en">A 16-state EKF that rejects impossible measurements</h2>
+      <p data-l="fr">La centrale inertielle propage l'état à haute fréquence. Chaque fix GNSS est comparé à la prédiction par un test d'innovation normalisée. Au-delà du seuil χ², la mesure est rejetée : le leurrage est détecté sans interrompre la navigation.</p>
+      <p data-l="en">The inertial unit propagates the state at high rate. Each GNSS fix is checked against the prediction with a normalized innovation test. Above the χ² threshold the measurement is rejected, so spoofing is detected without interrupting navigation.</p>
+      <div class="sv" aria-label="16-dim state vector">
+        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>pⁿ <b data-l="fr">position</b><b data-l="en">position</b></span></div>
+        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>vⁿ <b data-l="fr">vitesse</b><b data-l="en">velocity</b></span></div>
+        <div><div class="cells"><i></i><i></i><i></i><i></i></div><span>q_bⁿ <b data-l="fr">attitude</b><b data-l="en">attitude</b></span></div>
+        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>b_a <b data-l="fr">accéléro</b><b data-l="en">accel</b></span></div>
+        <div><div class="cells"><i></i><i></i><i></i></div><span>b_g <b data-l="fr">gyro</b><b data-l="en">gyro</b></span></div>
+      </div>
+      <div class="formula" data-l="fr">ν   = z − H x̂⁻          innovation
+S   = H P⁻ Hᵀ + R
+NIS = νᵀ S⁻¹ ν
+rejet si NIS &gt; χ²(3 ; 0,99) = 11,34
+q̇   = ½ q ⊗ [0, ω]       intégration SO(3)</div>
+      <div class="formula" data-l="en">ν   = z − H x̂⁻          innovation
+S   = H P⁻ Hᵀ + R
+NIS = νᵀ S⁻¹ ν
+reject if NIS &gt; χ²(3 ; 0.99) = 11.34
+q̇   = ½ q ⊗ [0, ω]       SO(3) integration</div>
+      <dl class="hud">
+        <dt>NIS</dt><dd id="g-nis">—</dd>
+        <dt data-l="fr">Statut</dt><dt data-l="en">Status</dt><dd><span id="g-status" class="pill ok">—</span></dd>
+        <dt data-l="fr">Erreur pos.</dt><dt data-l="en">Pos. error</dt><dd id="g-err">—</dd>
+        <dt data-l="fr">b̂_a estimé</dt><dt data-l="en">b̂_a estimate</dt><dd id="g-bias">—</dd>
+        <dt data-l="fr">b_a réel</dt><dt data-l="en">b_a true</dt><dd>(+0.120, −0.050, +0.080) m/s²</dd>
+        <dt data-l="fr">Fixes rejetés</dt><dt data-l="en">Rejected fixes</dt><dd id="g-rej">0</dd>
+      </dl>
+      <p class="cap" data-l="fr">Simulation en direct : canal translationnel (cellules bleues, 9 des 16 états), IMU à 60 Hz, GNSS à 5 Hz, σ = 0,35 m. À chaque tour, un leurreur décale les fixes jusqu'à 2,2 m. Points bleus : fixes acceptés, rouges : rejetés. Ellipsoïde de covariance à 2σ. Le trièdre porte l'attitude estimée.</p>
+      <p class="cap" data-l="en">Live simulation: translational channel (blue cells, 9 of the 16 states), IMU at 60 Hz, GNSS at 5 Hz, σ = 0.35 m. On every lap a spoofer drags the fixes by up to 2.2 m. Blue dots: accepted fixes, red: rejected. 2σ covariance ellipsoid. The triad carries the estimated attitude.</p>
+    </div>
+  </section>
+
+  <section data-scene="2" id="scg">
+    <div class="panel">
+      <p class="eyebrow">AIOTECH · Spherical Constraint Graph</p>
+      <h2 data-l="fr">Élaguer avant de générer</h2>
+      <h2 data-l="en">Prune before generating</h2>
+      <p data-l="fr">Les états candidats vivent sur une sphère unité. Chaque contrainte d'exploitation y découpe une calotte interdite. Une trajectoire n'est conservée que si son degré d'admissibilité, agrégé par la t-norme de Gödel, reste strictement positif. Les hallucinations sont éliminées géométriquement, avant le décodage.</p>
+      <p data-l="en">Candidate states live on a unit sphere. Each operating constraint cuts a forbidden cap out of it. A trajectory is kept only if its admissibility degree, aggregated with the Gödel t-norm, stays strictly positive. Hallucinations are removed geometrically, before decoding.</p>
+      <div class="formula">μ_k(γ) = clamp( min_t (∠(γ(t), c_k) − α_k) / δ , 0, 1 )
+μ(γ)   = T_G(μ_1, …, μ_K) = min_k μ_k(γ)
+γ admissible  ⇔  μ(γ) &gt; 0</div>
+      <dl class="hud">
+        <dt data-l="fr">Candidats</dt><dt data-l="en">Candidates</dt><dd id="s-n">—</dd>
+        <dt>Admissibles</dt><dd id="s-ok">—</dd>
+        <dt data-l="fr">Élagués</dt><dt data-l="en">Pruned</dt><dd id="s-ko">—</dd>
+        <dt>μ max</dt><dd id="s-mu">—</dd>
+      </dl>
+      <p class="cap" data-l="fr">Simulation : 32 géodésiques tirées depuis l'état courant, 4 calottes interdites, δ = 0,25 rad. Un nouveau lot est tiré toutes les 9 secondes.</p>
+      <p class="cap" data-l="en">Simulation: 32 geodesics drawn from the current state, 4 forbidden caps, δ = 0.25 rad. A new batch is drawn every 9 seconds.</p>
+    </div>
+  </section>
+
+  <section data-scene="3" id="green">
+    <div class="panel">
+      <p class="eyebrow">AIOTECH · Green AI</p>
+      <h2 data-l="fr">Calculer seulement ce qui est nécessaire</h2>
+      <h2 data-l="en">Compute only what is needed</h2>
+      <p data-l="fr">L'AdaptiveComputeGate arrête la propagation d'un token dès que sa confiance franchit le seuil de sortie. Les tokens faciles quittent le réseau tôt, les difficiles le traversent en entier. Avec une allocation k-dynamique du contexte RAG, le middleware réduit les FLOPs de 40 à 60 % (estimation) et allège l'empreinte VRAM.</p>
+      <p data-l="en">The AdaptiveComputeGate stops a token's propagation as soon as its confidence crosses the exit threshold. Easy tokens leave the network early, hard ones go all the way through. Combined with k-dynamic allocation of the RAG context, the middleware cuts FLOPs by 40 to 60 % (estimate) and lowers the VRAM footprint.</p>
+      <div class="formula" data-l="fr">sortie à la couche ℓ  si  max softmax(W_ℓ h_ℓ) ≥ θ_ℓ
+FLOPs ∝ Σ_tokens ℓ_sortie   (au lieu de N · L)
+k(q) = min { k : Σ_{i≤k} s_i ≥ ρ }   contexte RAG</div>
+      <div class="formula" data-l="en">exit at layer ℓ  if  max softmax(W_ℓ h_ℓ) ≥ θ_ℓ
+FLOPs ∝ Σ_tokens ℓ_exit   (instead of N · L)
+k(q) = min { k : Σ_{i≤k} s_i ≥ ρ }   RAG context</div>
+      <dl class="hud">
+        <dt data-l="fr">Tokens traités</dt><dt data-l="en">Tokens processed</dt><dd id="a-n">—</dd>
+        <dt data-l="fr">Couches / token</dt><dt data-l="en">Layers / token</dt><dd id="a-l">—</dd>
+        <dt data-l="fr">FLOPs évités</dt><dt data-l="en">FLOPs saved</dt><dd id="a-s">—</dd>
+      </dl>
+      <p class="cap" data-l="fr">Simulation : 12 couches, 60 % de tokens faciles (sortie couches 2 à 5), 20 % moyens (7 à 9), 20 % complets. Économie attendue ≈ 49 %. Les tokens sortis deviennent bleus.</p>
+      <p class="cap" data-l="en">Simulation: 12 layers, 60 % easy tokens (exit at layers 2 to 5), 20 % medium (7 to 9), 20 % full depth. Expected saving ≈ 49 %. Tokens that exit turn blue.</p>
+    </div>
+  </section>
+
+  <section data-scene="4" id="aiov3">
+    <div class="panel">
+      <p class="eyebrow" data-l="fr">AIO v3 · Résultat négatif</p>
+      <p class="eyebrow" data-l="en">AIO v3 · Negative result</p>
+      <h2 data-l="fr">Quand les gradients s'effondrent</h2>
+      <h2 data-l="en">When gradients collapse</h2>
+      <p data-l="fr">Dans AIO v3, la sélection des chemins de raisonnement passait par un masque dur (argmax). Le passage avant fonctionnait, mais l'argmax a une dérivée nulle presque partout : aucun gradient n'atteignait les couches amont, qui ont cessé d'apprendre. Le remplacement par Gumbel-Softmax avec estimateur Straight-Through garde une décision discrète à l'aller et transmet un gradient continu au retour.</p>
+      <p data-l="en">In AIO v3, reasoning paths were selected with a hard mask (argmax). The forward pass worked, but argmax has a zero derivative almost everywhere: no gradient reached the upstream layers, and they stopped learning. Switching to Gumbel-Softmax with a Straight-Through estimator keeps a discrete decision on the forward pass and sends a continuous gradient on the backward pass.</p>
+      <div class="seg" role="group" aria-label="Selection mode">
+        <button type="button" id="m-hard" data-mode="hard" aria-pressed="true"><span data-l="fr">Masque dur · argmax</span><span data-l="en">Hard mask · argmax</span></button>
+        <button type="button" id="m-ste" data-mode="ste" aria-pressed="false">Gumbel-Softmax · STE</button>
+      </div>
+      <div class="formula" data-l="fr">y_soft = softmax((log π + g) / τ),   g ~ Gumbel(0, 1)
+y      = y_hard − sg(y_soft) + y_soft
+avant : y = y_hard    arrière : ∂y/∂π = ∂y_soft/∂π</div>
+      <div class="formula" data-l="en">y_soft = softmax((log π + g) / τ),   g ~ Gumbel(0, 1)
+y      = y_hard − sg(y_soft) + y_soft
+forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
+      <dl class="hud">
+        <dt>Mode</dt><dd id="r-mode">argmax</dd>
+        <dt data-l="fr">Gradient reçu</dt><dt data-l="en">Gradient received</dt><dd id="r-rate">—</dd>
+      </dl>
+      <p class="cap" data-l="fr">Ambre : activations vers l'avant. Bleu : gradients vers l'arrière. Le cadre marque la couche de sélection discrète. Le mode bascule tout seul au fil du défilement, ou par les boutons.</p>
+      <p class="cap" data-l="en">Amber: forward activations. Blue: backward gradients. The frame marks the discrete selection layer. The mode switches on its own as you scroll, or with the buttons.</p>
+      <p data-l="fr">Leçon retenue : une contrainte de traçabilité doit rester différentiable, sinon elle détruit l'apprentissage qu'elle devait encadrer.</p>
+      <p data-l="en">Lesson learned: a traceability constraint must stay differentiable, otherwise it destroys the learning it was meant to govern.</p>
+    </div>
+  </section>
+
+  <section data-scene="0" data-dim="1" id="secops">
+    <div class="panel">
+      <p class="eyebrow">AIO-SecEng · SecOps &amp; Bug Bounty</p>
+      <h2 data-l="fr">Masquer seulement ce qui est réellement sensible</h2>
+      <h2 data-l="en">Mask only what is actually sensitive</h2>
+      <p data-l="fr">Le masquage PII valide chaque séquence numérique avec l'algorithme de Luhn avant de la caviarder : un vrai numéro de carte est masqué, un identifiant qui lui ressemble ne l'est pas. Même principe pour l'anti-injection : des invariants explicites plutôt que des listes noires.</p>
+      <p data-l="en">PII masking validates each digit sequence with the Luhn algorithm before redacting it: a real card number is masked, an identifier that only looks like one is not. Same principle for injection protection: explicit invariants instead of blocklists.</p>
+      <label for="pii-in"><span data-l="fr">Texte à filtrer</span><span data-l="en">Text to filter</span></label>
+      <textarea id="pii-in" spellcheck="false">Client J. Martin, carte 4539 1488 0343 6467, ticket n° 1234 5678 9012 3456, rappel au 06 12 34 56 78.</textarea>
+      <div class="out" id="pii-out" aria-live="polite"></div>
+      <div class="formula">def luhn_valid(digits: str) -&gt; bool:
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        d = int(ch)
+        if i % 2 == 1:
+            d = d * 2 - 9 if d &gt; 4 else d * 2
+        total += d
+    return total % 10 == 0</div>
+      <p class="cap" data-l="fr">Souligné bleu : séquence Luhn-valide, masquée. Pointillé : séquence de 13 à 19 chiffres qui échoue au test, laissée intacte.</p>
+      <p class="cap" data-l="en">Blue underline: Luhn-valid sequence, masked. Dotted: 13 to 19 digit sequence that fails the check, left untouched.</p>
+    </div>
+  </section>
+
+  <section data-scene="0" data-dim="1" id="competences">
+    <div class="panel wide">
+      <p class="eyebrow" data-l="fr">Compétences</p>
+      <p class="eyebrow" data-l="en">Skills</p>
+      <h2 data-l="fr">Quatre domaines, une même exigence d'invariants</h2>
+      <h2 data-l="en">Four domains, one demand for invariants</h2>
+      <div class="skills" data-l="fr">
+        <div><span class="src">AIOTECH</span><h3>Inférence frugale</h3><ul>
+          <li>Calcul adaptatif, sortie anticipée (AdaptiveComputeGate)</li>
+          <li>Allocation k-dynamique de la mémoire de contexte</li>
+          <li>Réduction FLOPs estimée de 40 à 60 %, empreinte VRAM des pipelines RAG</li>
+          <li>PyTorch, vectorisation, profilage</li></ul></div>
+        <div><span class="src">AIOTECH · AIO v3</span><h3>Raisonnement neuro-symbolique</h3><ul>
+          <li>Spherical Constraint Graph, élagage géométrique</li>
+          <li>Logique continue, t-norme de Gödel</li>
+          <li>Gumbel-Softmax, estimateur Straight-Through</li>
+          <li>Traçabilité des décisions</li></ul></div>
+        <div><span class="src">Aiogps</span><h3>Estimation et navigation</h3><ul>
+          <li>EKF à 16 états, fusion GNSS/INS</li>
+          <li>Quaternions, intégration sur SO(3)</li>
+          <li>Estimation des biais IMU</li>
+          <li>Tests d'intégrité χ², détection de leurrage</li></ul></div>
+        <div><span class="src">AIO-SecEng</span><h3>Backend et SecOps</h3><ul>
+          <li>Python, FastAPI, asyncio, Pydantic</li>
+          <li>Docker, pytest, couverture totale</li>
+          <li>Masquage PII (Luhn), anti-injection</li>
+          <li>Bug bounty, audit de code</li></ul></div>
+      </div>
+      <div class="skills" data-l="en">
+        <div><span class="src">AIOTECH</span><h3>Frugal inference</h3><ul>
+          <li>Adaptive compute, early exit (AdaptiveComputeGate)</li>
+          <li>k-dynamic context memory allocation</li>
+          <li>Estimated 40 to 60 % FLOPs reduction, lower VRAM footprint for RAG pipelines</li>
+          <li>PyTorch, vectorization, profiling</li></ul></div>
+        <div><span class="src">AIOTECH · AIO v3</span><h3>Neuro-symbolic reasoning</h3><ul>
+          <li>Spherical Constraint Graph, geometric pruning</li>
+          <li>Continuous logic, Gödel t-norm</li>
+          <li>Gumbel-Softmax, Straight-Through estimator</li>
+          <li>Decision traceability</li></ul></div>
+        <div><span class="src">Aiogps</span><h3>Estimation and navigation</h3><ul>
+          <li>16-state EKF, GNSS/INS fusion</li>
+          <li>Quaternions, integration on SO(3)</li>
+          <li>IMU bias estimation</li>
+          <li>χ² integrity tests, spoofing detection</li></ul></div>
+        <div><span class="src">AIO-SecEng</span><h3>Backend and SecOps</h3><ul>
+          <li>Python, FastAPI, asyncio, Pydantic</li>
+          <li>Docker, pytest, full coverage</li>
+          <li>PII masking (Luhn), injection protection</li>
+          <li>Bug bounty, code audit</li></ul></div>
+      </div>
+      <h3 data-l="fr">Méthode TAP · raisonnement par trajectoire admissible</h3>
+      <h3 data-l="en">TAP method · admissible trajectory reasoning</h3>
+      <div class="tap" data-l="fr">
+        <div><b>1 · ÉTATS</b><span>Modéliser l'espace d'états du problème</span></div>
+        <div><b>2 · CONTRAINTES</b><span>Poser les invariants sous forme de graphe (SCG)</span></div>
+        <div><b>3 · ÉLAGAGE</b><span>Éliminer les approches incohérentes</span></div>
+        <div><b>4 · CHAÎNE CAUSALE</b><span>Restituer la résolution étape par étape</span></div>
+      </div>
+      <div class="tap" data-l="en">
+        <div><b>1 · STATES</b><span>Model the problem's state space</span></div>
+        <div><b>2 · CONSTRAINTS</b><span>Express invariants as a graph (SCG)</span></div>
+        <div><b>3 · PRUNING</b><span>Eliminate inconsistent approaches</span></div>
+        <div><b>4 · CAUSAL CHAIN</b><span>Lay out the resolution step by step</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-scene="0" data-dim="1" id="parcours">
+    <div class="panel wide">
+      <p class="eyebrow" data-l="fr">Parcours</p>
+      <p class="eyebrow" data-l="en">Experience</p>
+      <h2 data-l="fr">5 ans de freelance, dont 3 ans exclusivement en IA</h2>
+      <h2 data-l="en">5 years freelancing, 3 of them exclusively in AI</h2>
+      <div class="timeline" data-l="fr">
+        <div><b>5 ans</b><div><h3>Ingénieur freelance</h3><p>Développement backend Python, architectures asynchrones conteneurisées, sécurité applicative et bug bounty.</p></div></div>
+        <div><b>3 ans</b><div><h3>Ingénieur R&amp;D IA, exclusivement</h3><p>Conception d'AIOTECH (middleware Green AI et SCG), d'Aiogps (fusion GNSS/INS) et d'AIO-SecEng (SecOps).</p></div></div>
+      </div>
+      <div class="timeline" data-l="en">
+        <div><b>5 yrs</b><div><h3>Freelance engineer</h3><p>Python backend development, containerized asynchronous architectures, application security and bug bounty.</p></div></div>
+        <div><b>3 yrs</b><div><h3>AI R&amp;D engineer, exclusively</h3><p>Built AIOTECH (Green AI middleware and SCG), Aiogps (GNSS/INS fusion) and AIO-SecEng (SecOps).</p></div></div>
+      </div>
+      <div class="meta"><span data-l="fr">Formation : autodidacte</span><span data-l="en">Education: self-taught</span><span data-l="fr">Langues : français, anglais</span><span data-l="en">Languages: French, English</span></div>
+    </div>
+  </section>
+</main>
+<footer><span data-l="fr">Rendu temps réel Three.js r128. Toutes les démos sont calculées dans le navigateur, aucune n'est une vidéo.</span><span data-l="en">Real-time rendering with Three.js r128. Every demo is computed in the browser; none is a video.</span></footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var css = getComputedStyle(document.documentElement);
+  function tok(n) { return css.getPropertyValue(n).trim(); }
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var LANG = 'fr', langHooks = [];
+  function L(fr, en) { return LANG === 'en' ? en : fr; }
+
+  /* ---------- PII / Luhn (indépendant de WebGL) ---------- */
+  function luhnValid(d) {
+    var total = 0;
+    for (var i = 0; i < d.length; i++) {
+      var n = d.charCodeAt(d.length - 1 - i) - 48;
+      if (i % 2 === 1) n = n > 4 ? n * 2 - 9 : n * 2;
+      total += n;
+    }
+    return total % 10 === 0;
+  }
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var piiIn = document.getElementById('pii-in'), piiOut = document.getElementById('pii-out');
+  function maskPII() {
+    var src = piiIn.value, re = /\d(?:[ -]?\d){12,18}/g, out = '', last = 0, m;
+    while ((m = re.exec(src)) !== null) {
+      var digits = m[0].replace(/[ -]/g, '');
+      out += esc(src.slice(last, m.index));
+      if (digits.length >= 13 && digits.length <= 19 && luhnValid(digits)) {
+        out += '<mark>' + '•••• '.repeat(Math.ceil((digits.length - 4) / 4)) + digits.slice(-4) + '</mark>';
+      } else {
+        out += '<s>' + esc(m[0]) + '</s>';
+      }
+      last = m.index + m[0].length;
+    }
+    piiOut.innerHTML = out + esc(src.slice(last));
+  }
+  piiIn.addEventListener('input', maskPII);
+  maskPII();
+  var PII_SAMPLE = {
+    fr: 'Client J. Martin, carte 4539 1488 0343 6467, ticket n° 1234 5678 9012 3456, rappel au 06 12 34 56 78.',
+    en: 'Customer J. Martin, card 4539 1488 0343 6467, ticket no. 1234 5678 9012 3456, call back on +44 20 7946 0958.'
+  };
+  langHooks.push(function () {
+    if (piiIn.value === PII_SAMPLE.fr || piiIn.value === PII_SAMPLE.en) { piiIn.value = PII_SAMPLE[LANG]; maskPII(); }
+  });
+
+  /* ---------- Mode argmax / STE ---------- */
+  var gradMode = 'hard', userChose = false;
+  var btnHard = document.getElementById('m-hard'), btnSte = document.getElementById('m-ste');
+  function setMode(m) {
+    gradMode = m;
+    btnHard.setAttribute('aria-pressed', String(m === 'hard'));
+    btnSte.setAttribute('aria-pressed', String(m === 'ste'));
+    document.getElementById('r-mode').textContent = m === 'hard' ? 'argmax' : L('Gumbel-Softmax + STE (τ = 0,5)', 'Gumbel-Softmax + STE (τ = 0.5)');
+  }
+  [btnHard, btnSte].forEach(function (b) { b.addEventListener('click', function () { userChose = true; setMode(b.dataset.mode); }); });
+  langHooks.push(function () { setMode(gradMode); });
+
+  /* ---------- Langue FR / EN ---------- */
+  var langBtns = Array.prototype.slice.call(document.querySelectorAll('[data-setlang]'));
+  function setLang(l) {
+    LANG = l === 'en' ? 'en' : 'fr';
+    document.documentElement.setAttribute('data-lang', LANG);
+    document.documentElement.lang = LANG;
+    langBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.setlang === LANG)); });
+    langHooks.forEach(function (f) { f(); });
+    try { localStorage.setItem('cv-lang', LANG); } catch (e) { /* stockage indisponible */ }
+  }
+  langBtns.forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.setlang); }); });
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('cv-lang'); } catch (e) { savedLang = null; }
+  setLang(savedLang || ((navigator.language || 'fr').toLowerCase().indexOf('fr') === 0 ? 'fr' : 'en'));
+
+  /* ---------- WebGL ---------- */
+  if (typeof THREE === 'undefined') { document.documentElement.classList.add('no-gl'); return; }
+  var renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('stage'), antialias: true }); }
+  catch (e) { document.documentElement.classList.add('no-gl'); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(new THREE.Color(tok('--ink')), 1);
+
+  var COL = {
+    amber: new THREE.Color(tok('--amber')), cyan: new THREE.Color(tok('--cyan')),
+    red: new THREE.Color(tok('--red')), fg: new THREE.Color(tok('--fg')),
+    muted: new THREE.Color(tok('--muted')), line: new THREE.Color(tok('--line'))
+  };
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var rand = mulberry32(20261007), spare = null;
+  function gauss() {
+    if (spare !== null) { var s = spare; spare = null; return s; }
+    var u = 0; while (u === 0) u = rand();
+    var v = rand(), r = Math.sqrt(-2 * Math.log(u));
+    spare = r * Math.sin(2 * Math.PI * v);
+    return r * Math.cos(2 * Math.PI * v);
+  }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+
+  function dotTexture() {
+    var c = document.createElement('canvas'); c.width = c.height = 64;
+    var g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+  var DOT = dotTexture();
+  function mat(Kind, params, base) {
+    var m = new THREE[Kind](Object.assign({ transparent: true, depthWrite: false }, params));
+    m.userData.base = base; return m;
+  }
+  function polyline(pts, color, base) {
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat('LineBasicMaterial', { color: color }, base));
+  }
+  function dynLine(n, color, base) {
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setDrawRange(0, 0);
+    return new THREE.Line(g, mat('LineBasicMaterial', { color: color }, base));
+  }
+  function dynPoints(n, size, base, color) {
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    var p = { size: size, map: DOT };
+    if (color) p.color = color; else { g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); p.vertexColors = true; }
+    return new THREE.Points(g, mat('PointsMaterial', p, base));
+  }
+
+  var scenes = [];
+
+  /* ===== 0 · Hero : trajectoire admissible vs alternatives ===== */
+  (function () {
+    var grp = new THREE.Group();
+    function knot(t) { return new THREE.Vector3(Math.sin(t) + 2 * Math.sin(2 * t), Math.cos(t) - 2 * Math.cos(2 * t), -Math.sin(3 * t)).multiplyScalar(1.15); }
+    var N = 600, main = [], i, j;
+    for (i = 0; i <= N; i++) main.push(knot(i / N * Math.PI * 2));
+    grp.add(polyline(main, COL.amber, 0.6));
+    for (j = 0; j < 7; j++) {
+      var ph = rand() * 6.28, amp = 0.3 + rand() * 0.6, alt = [];
+      for (i = 0; i <= N; i++) {
+        var t = i / N * Math.PI * 2;
+        alt.push(knot(t).add(new THREE.Vector3(Math.sin(3 * t + ph) * amp, Math.cos(2 * t + ph) * amp, Math.sin(5 * t + ph) * amp * 0.6)));
+      }
+      grp.add(polyline(alt, COL.red, 0.16));
+    }
+    var TRAIL = 90, head = dynLine(TRAIL, COL.fg, 0.95), dot = dynPoints(1, 0.32, 1, COL.fg);
+    head.geometry.setDrawRange(0, TRAIL); dot.geometry.setDrawRange(0, 1);
+    grp.add(head, dot);
+    var phase = 0;
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0, 0.6, 12),
+      update: function (dt) {
+        phase += dt * 0.3;
+        var a = head.geometry.attributes.position.array;
+        for (var k = 0; k < TRAIL; k++) { var p = knot(phase - k * 0.007); a[k * 3] = p.x; a[k * 3 + 1] = p.y; a[k * 3 + 2] = p.z; }
+        head.geometry.attributes.position.needsUpdate = true;
+        var h = knot(phase), d = dot.geometry.attributes.position.array; d[0] = h.x; d[1] = h.y; d[2] = h.z;
+        dot.geometry.attributes.position.needsUpdate = true;
+        if (!reduce) grp.rotation.y += dt * 0.08;
+      }
+    });
+  })();
+
+  /* ===== 1 · Aiogps : KF translationnel p,v,b_a + gating χ² ===== */
+  (function () {
+    var grp = new THREE.Group();
+    var SPD = 0.45, DT = 1 / 60, SIG_GNSS = 0.35, R = SIG_GNSS * SIG_GNSS, SIG_A = 0.08, GATE = 11.345;
+    var B_TRUE = [0.12, -0.05, 0.08];
+    function truthP(s) { return [5 * Math.sin(s), 0.6 * Math.sin(3 * s), 3 * Math.sin(2 * s)]; }
+    function truthV(s) { return [SPD * 5 * Math.cos(s), SPD * 1.8 * Math.cos(3 * s), SPD * 6 * Math.cos(2 * s)]; }
+    function truthA(s) { var k = SPD * SPD; return [-k * 5 * Math.sin(s), -k * 5.4 * Math.sin(3 * s), -k * 12 * Math.sin(2 * s)]; }
+    var tp = [], i;
+    for (i = 0; i <= 400; i++) { var q = truthP(i / 400 * Math.PI * 2); tp.push(new THREE.Vector3(q[0], q[1], q[2])); }
+    grp.add(polyline(tp, COL.fg, 0.2));
+    var grid = new THREE.GridHelper(14, 14, COL.line, COL.line);
+    grid.position.y = -1.6; grid.material.transparent = true; grid.material.depthWrite = false; grid.material.userData.base = 0.7;
+    grp.add(grid);
+
+    var p0 = truthP(0), v0 = truthV(0);
+    var kf = [0, 1, 2].map(function (ax) { return { x: [p0[ax], v0[ax], 0], P: [[0.25, 0, 0], [0, 0.25, 0], [0, 0, 0.04]] }; });
+    function mul(A, B) { var C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) C[r][c] = A[r][0] * B[0][c] + A[r][1] * B[1][c] + A[r][2] * B[2][c]; return C; }
+    function mulBt(A, B) { var C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) C[r][c] = A[r][0] * B[c][0] + A[r][1] * B[c][1] + A[r][2] * B[c][2]; return C; }
+    var F = [[1, DT, -0.5 * DT * DT], [0, 1, -DT], [0, 0, 1]];
+    var Q = [1e-7, SIG_A * SIG_A * DT, 2e-7];
+    function predict(f, am) {
+      var u = am - f.x[2];
+      f.x[0] += f.x[1] * DT + 0.5 * u * DT * DT;
+      f.x[1] += u * DT;
+      f.P = mulBt(mul(F, f.P), F);
+      f.P[0][0] += Q[0]; f.P[1][1] += Q[1]; f.P[2][2] += Q[2];
+    }
+    function correct(f, y, S) {
+      var row = f.P[0].slice(), K = [f.P[0][0] / S, f.P[1][0] / S, f.P[2][0] / S];
+      for (var r = 0; r < 3; r++) { f.x[r] += K[r] * y; for (var c = 0; c < 3; c++) f.P[r][c] -= K[r] * row[c]; }
+    }
+
+    var TRAIL = 260, est = dynLine(TRAIL, COL.amber, 0.95), estN = 0;
+    grp.add(est);
+    var NF = 70, fixes = dynPoints(NF, 0.2, 0.95), fixIdx = 0, fixN = 0;
+    grp.add(fixes);
+    var ell = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), mat('MeshBasicMaterial', { color: COL.cyan, wireframe: true }, 0.35));
+    grp.add(ell);
+    var triad = new THREE.Group();
+    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], COL.amber, 1));
+    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(0, 0.6, 0)], COL.cyan, 1));
+    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(0, 0, 0.6)], COL.fg, 1));
+    grp.add(triad);
+
+    var s = 0, acc = 0, step = 0, lastNis = 0, lastRej = false, lastSpoof = false, rejected = 0, hudT = 0;
+    var X = new THREE.Vector3(1, 0, 0), vdir = new THREE.Vector3();
+    var el = { nis: document.getElementById('g-nis'), st: document.getElementById('g-status'), err: document.getElementById('g-err'), bias: document.getElementById('g-bias'), rej: document.getElementById('g-rej') };
+    function fmt(x) { return (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(3); }
+
+    function simStep() {
+      s += SPD * DT; step++;
+      var a = truthA(s);
+      for (var ax = 0; ax < 3; ax++) predict(kf[ax], a[ax] + B_TRUE[ax] + SIG_A * gauss());
+      if (step % 12 === 0) {
+        var p = truthP(s), sm = s % (Math.PI * 2), spoof = sm > 2.4 && sm < 3.7;
+        var off = spoof ? Math.min(1, (sm - 2.4) / 0.35) * 2.2 : 0;
+        var dir = [0.78, 0, 0.62], z = [], y = [], S = [], nis = 0;
+        for (ax = 0; ax < 3; ax++) {
+          z[ax] = p[ax] + SIG_GNSS * gauss() + off * dir[ax];
+          S[ax] = kf[ax].P[0][0] + R; y[ax] = z[ax] - kf[ax].x[0]; nis += y[ax] * y[ax] / S[ax];
+        }
+        var ok = nis < GATE;
+        if (ok) for (ax = 0; ax < 3; ax++) correct(kf[ax], y[ax], S[ax]); else rejected++;
+        lastNis = nis; lastRej = !ok; lastSpoof = spoof;
+        var fp = fixes.geometry.attributes.position.array, fc = fixes.geometry.attributes.color.array, c = ok ? COL.cyan : COL.red;
+        fp[fixIdx * 3] = z[0]; fp[fixIdx * 3 + 1] = z[1]; fp[fixIdx * 3 + 2] = z[2];
+        fc[fixIdx * 3] = c.r; fc[fixIdx * 3 + 1] = c.g; fc[fixIdx * 3 + 2] = c.b;
+        fixIdx = (fixIdx + 1) % NF; fixN = Math.min(NF, fixN + 1);
+        fixes.geometry.attributes.position.needsUpdate = true; fixes.geometry.attributes.color.needsUpdate = true;
+        fixes.geometry.setDrawRange(0, fixN);
+      }
+    }
+
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0, 10, 14),
+      update: function (dt) {
+        acc += dt;
+        while (acc >= DT) { simStep(); acc -= DT; }
+        var ex = kf[0].x[0], ey = kf[1].x[0], ez = kf[2].x[0];
+        var arr = est.geometry.attributes.position.array;
+        arr.copyWithin(3, 0, arr.length - 3); arr[0] = ex; arr[1] = ey; arr[2] = ez;
+        estN = Math.min(TRAIL, estN + 1); est.geometry.setDrawRange(0, estN);
+        est.geometry.attributes.position.needsUpdate = true;
+        ell.position.set(ex, ey, ez);
+        ell.scale.set(Math.max(0.05, 2 * Math.sqrt(kf[0].P[0][0])), Math.max(0.05, 2 * Math.sqrt(kf[1].P[0][0])), Math.max(0.05, 2 * Math.sqrt(kf[2].P[0][0])));
+        triad.position.set(ex, ey, ez);
+        vdir.set(kf[0].x[1], kf[1].x[1], kf[2].x[1]);
+        if (vdir.lengthSq() > 1e-6) triad.quaternion.setFromUnitVectors(X, vdir.normalize());
+        hudT += dt;
+        if (hudT > 0.1) {
+          hudT = 0;
+          var tp2 = truthP(s);
+          el.nis.textContent = lastNis.toFixed(2) + L(' / seuil 11.34', ' / threshold 11.34');
+          if (lastRej) { el.st.textContent = L('Leurrage détecté · fix rejeté', 'Spoofing detected · fix rejected'); el.st.className = 'pill bad'; }
+          else if (lastSpoof) { el.st.textContent = L('Leurrage en cours · sous le seuil', 'Spoofing under way · below threshold'); el.st.className = 'pill warn'; }
+          else { el.st.textContent = L('Intègre', 'Healthy'); el.st.className = 'pill ok'; }
+          el.err.textContent = Math.hypot(ex - tp2[0], ey - tp2[1], ez - tp2[2]).toFixed(2) + ' m';
+          el.bias.textContent = '(' + fmt(kf[0].x[2]) + ', ' + fmt(kf[1].x[2]) + ', ' + fmt(kf[2].x[2]) + ') m/s²';
+          el.rej.textContent = String(rejected);
+        }
+      }
+    });
+  })();
+
+  /* ===== 2 · SCG : géodésiques sur la sphère, calottes interdites, T_G ===== */
+  (function () {
+    var grp = new THREE.Group(), RAD = 3, SAMPLES = 49, NARC = 32, DELTA = 0.25, i, k;
+    var lat, lon, pts;
+    for (lat = -60; lat <= 60; lat += 30) {
+      pts = []; var r0 = Math.cos(lat * Math.PI / 180) * RAD, y0 = Math.sin(lat * Math.PI / 180) * RAD;
+      for (i = 0; i <= 72; i++) pts.push(new THREE.Vector3(Math.cos(i / 72 * Math.PI * 2) * r0, y0, Math.sin(i / 72 * Math.PI * 2) * r0));
+      grp.add(polyline(pts, COL.muted, 0.16));
+    }
+    for (lon = 0; lon < 180; lon += 30) {
+      pts = []; var la = lon * Math.PI / 180;
+      for (i = 0; i <= 72; i++) { var th = i / 72 * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(th) * Math.cos(la) * RAD, Math.sin(th) * RAD, Math.cos(th) * Math.sin(la) * RAD)); }
+      grp.add(polyline(pts, COL.muted, 0.16));
+    }
+    var caps = [[[1, 0.4, 0.2], 0.42], [[-0.6, 0.5, 0.8], 0.4], [[0.1, 0.25, -1], 0.5], [[-0.9, -0.1, -0.3], 0.36]].map(function (c) {
+      return { c: new THREE.Vector3(c[0][0], c[0][1], c[0][2]).normalize(), a: c[1] };
+    });
+    var UP = new THREE.Vector3(0, 1, 0);
+    caps.forEach(function (cp) {
+      var q = new THREE.Quaternion().setFromUnitVectors(UP, cp.c);
+      var m = new THREE.Mesh(new THREE.SphereGeometry(RAD * 1.002, 40, 8, 0, Math.PI * 2, 0, cp.a), mat('MeshBasicMaterial', { color: COL.red, side: THREE.DoubleSide }, 0.17));
+      m.quaternion.copy(q); grp.add(m);
+      var ring = [];
+      for (var j = 0; j <= 64; j++) { var ph = j / 64 * Math.PI * 2; ring.push(new THREE.Vector3(Math.sin(cp.a) * Math.cos(ph), Math.cos(cp.a), Math.sin(cp.a) * Math.sin(ph)).multiplyScalar(RAD * 1.006).applyQuaternion(q)); }
+      grp.add(polyline(ring, COL.red, 0.85));
+    });
+    var origin = new THREE.Vector3(0.2, 1, 0.3).normalize();
+    var od = dynPoints(1, 0.36, 1, COL.amber);
+    od.geometry.attributes.position.array.set([origin.x * RAD * 1.01, origin.y * RAD * 1.01, origin.z * RAD * 1.01]);
+    od.geometry.setDrawRange(0, 1); grp.add(od);
+
+    var arcs = [];
+    for (i = 0; i < NARC; i++) { var ln = dynLine(SAMPLES, COL.fg, 0.5); grp.add(ln); arcs.push({ line: ln, ok: false, mu: 0 }); }
+    var tv = new THREE.Vector3(), pv = new THREE.Vector3();
+    function randDir() { return tv.set(gauss(), gauss(), gauss()).normalize(); }
+    function generate() {
+      arcs.forEach(function (a) {
+        var t, d;
+        do { t = randDir(); d = origin.dot(t); } while (d > 0.55 || d < -0.6);
+        var om = Math.acos(d), so = Math.sin(om), arr = a.line.geometry.attributes.position.array, margin = Infinity;
+        for (var u = 0; u < SAMPLES; u++) {
+          var f = u / (SAMPLES - 1), w0 = Math.sin((1 - f) * om) / so, w1 = Math.sin(f * om) / so;
+          pv.set(origin.x * w0 + t.x * w1, origin.y * w0 + t.y * w1, origin.z * w0 + t.z * w1).normalize();
+          for (k = 0; k < caps.length; k++) margin = Math.min(margin, Math.acos(clamp(pv.dot(caps[k].c), -1, 1)) - caps[k].a);
+          arr[u * 3] = pv.x * RAD * 1.004; arr[u * 3 + 1] = pv.y * RAD * 1.004; arr[u * 3 + 2] = pv.z * RAD * 1.004;
+        }
+        a.line.geometry.attributes.position.needsUpdate = true;
+        a.ok = margin > 0; a.mu = clamp(margin / DELTA, 0, 1);
+      });
+    }
+    generate();
+    var T = 0, judged = false;
+    var el = { n: document.getElementById('s-n'), ok: document.getElementById('s-ok'), ko: document.getElementById('s-ko'), mu: document.getElementById('s-mu') };
+    function hud() {
+      var ok = 0, best = 0;
+      arcs.forEach(function (a) { if (a.ok) ok++; best = Math.max(best, a.mu); });
+      el.n.textContent = String(NARC);
+      el.ok.textContent = judged ? String(ok) : L('évaluation…', 'evaluating…');
+      el.ko.textContent = judged ? String(NARC - ok) : L('évaluation…', 'evaluating…');
+      el.mu.textContent = judged ? best.toFixed(2) : '—';
+    }
+    hud();
+    langHooks.push(hud);
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0, 2.5, 10.5),
+      update: function (dt) {
+        T += dt;
+        if (T > 9) { T = 0; judged = false; generate(); hud(); }
+        if (!judged && T > 2.6) { judged = true; hud(); }
+        arcs.forEach(function (a, idx) {
+          var g = clamp((T - idx * 0.03) / 1.6, 0, 1);
+          a.line.geometry.setDrawRange(0, Math.max(1, Math.floor(g * SAMPLES)));
+          var m = a.line.material;
+          if (T < 2.6) { m.color.copy(COL.fg); m.userData.base = 0.5; }
+          else if (a.ok) { m.color.copy(COL.amber); m.userData.base = 0.95; }
+          else { m.color.copy(COL.red); m.userData.base = 0.85 - 0.77 * clamp((T - 2.6) / 1.2, 0, 1); }
+        });
+        if (!reduce) grp.rotation.y += dt * 0.06;
+      }
+    });
+  })();
+
+  /* ===== 3 · AdaptiveComputeGate : sortie anticipée par couche ===== */
+  (function () {
+    var grp = new THREE.Group(), L = 12, NT = 40, i;
+    var planes = [];
+    for (i = 0; i < L; i++) {
+      var pg = new THREE.PlaneGeometry(1.6, 2.6);
+      var m = new THREE.Mesh(pg, mat('MeshBasicMaterial', { color: COL.cyan, side: THREE.DoubleSide }, 0.05));
+      m.rotation.y = Math.PI / 2; m.position.x = -5.5 + i;
+      var e = new THREE.LineSegments(new THREE.EdgesGeometry(pg), mat('LineBasicMaterial', { color: COL.muted }, 0.4));
+      e.rotation.y = Math.PI / 2; e.position.x = -5.5 + i;
+      grp.add(m, e); planes.push({ mesh: m, flash: 0 });
+    }
+    var pts = dynPoints(NT, 0.24, 1);
+    pts.geometry.setDrawRange(0, NT); grp.add(pts);
+    function sampleExit() {
+      var r = rand();
+      if (r < 0.6) return 2 + Math.floor(rand() * 4);
+      if (r < 0.8) return 7 + Math.floor(rand() * 3);
+      return L;
+    }
+    var toks = [];
+    for (i = 0; i < NT; i++) toks.push({ x: -7 - i * 0.55, y: (rand() - 0.5) * 2, z: (rand() - 0.5) * 1.2, exit: sampleExit(), out: false });
+    var used = 0, count = 0, hudT = 0, SPEED = 2.4;
+    var el = { n: document.getElementById('a-n'), l: document.getElementById('a-l'), s: document.getElementById('a-s') };
+    function reset(t) { t.x = -7 - rand() * 2; t.y = (rand() - 0.5) * 2; t.z = (rand() - 0.5) * 1.2; t.exit = sampleExit(); t.out = false; }
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0.5, 4, 15),
+      update: function (dt) {
+        var pa = pts.geometry.attributes.position.array, ca = pts.geometry.attributes.color.array;
+        toks.forEach(function (t, k) {
+          if (!t.out) {
+            t.x += SPEED * dt;
+            var exitX = -5.5 + (t.exit - 1);
+            if (t.exit < L && t.x >= exitX) { t.out = true; t.x = exitX; planes[t.exit - 1].flash = 1; used += t.exit; count++; }
+            else if (t.exit === L && t.x > 6.8) { used += L; count++; reset(t); }
+          } else {
+            t.y += 2 * dt; t.x += 0.5 * dt;
+            if (t.y > 3.4) reset(t);
+          }
+          var c = t.out ? COL.cyan : COL.amber;
+          pa[k * 3] = t.x; pa[k * 3 + 1] = t.y; pa[k * 3 + 2] = t.z;
+          ca[k * 3] = c.r; ca[k * 3 + 1] = c.g; ca[k * 3 + 2] = c.b;
+        });
+        pts.geometry.attributes.position.needsUpdate = true; pts.geometry.attributes.color.needsUpdate = true;
+        planes.forEach(function (p) { p.flash = Math.max(0, p.flash - dt * 2.5); p.mesh.material.userData.base = 0.05 + p.flash * 0.35; });
+        hudT += dt;
+        if (hudT > 0.15) {
+          hudT = 0;
+          el.n.textContent = String(count);
+          if (count >= 5) {
+            el.l.textContent = (used / count).toFixed(2) + ' / ' + L;
+            el.s.textContent = ((1 - used / (count * L)) * 100).toFixed(1) + ' %';
+          }
+        }
+      }
+    });
+  })();
+
+  /* ===== 4 · AIO v3 : effondrement des gradients vs Gumbel-STE ===== */
+  (function () {
+    var grp = new THREE.Group(), sizes = [4, 6, 6, 4], xs = [-4.5, -1.5, 1.5, 4.5], SEL = 2, nodes = [], l, n;
+    var all = [];
+    for (l = 0; l < 4; l++) {
+      nodes.push([]);
+      for (n = 0; n < sizes[l]; n++) { var v = new THREE.Vector3(xs[l], (n - (sizes[l] - 1) / 2) * 0.9, 0); nodes[l].push(v); all.push(v); }
+    }
+    var segs = [];
+    for (l = 0; l < 3; l++) nodes[l].forEach(function (a) { nodes[l + 1].forEach(function (b) { segs.push(a, b); }); });
+    grp.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(segs), mat('LineBasicMaterial', { color: COL.muted }, 0.1)));
+    var np = new THREE.Points(new THREE.BufferGeometry().setFromPoints(all), mat('PointsMaterial', { color: COL.fg, size: 0.34, map: DOT }, 0.95));
+    grp.add(np);
+    var hh = (sizes[SEL] - 1) / 2 * 0.9 + 0.45;
+    var box = polyline([new THREE.Vector3(xs[SEL] - 0.45, -hh, 0), new THREE.Vector3(xs[SEL] + 0.45, -hh, 0), new THREE.Vector3(xs[SEL] + 0.45, hh, 0), new THREE.Vector3(xs[SEL] - 0.45, hh, 0), new THREE.Vector3(xs[SEL] - 0.45, -hh, 0)], COL.red, 0.9);
+    grp.add(box);
+    var NP = 80, pp = dynPoints(NP, 0.26, 1);
+    pp.geometry.setDrawRange(0, NP); grp.add(pp);
+    var pulses = [];
+    for (var i = 0; i < NP; i++) pulses.push({ alive: false });
+    function hop(p, layer, dir) {
+      var from = nodes[layer][p.node], next = layer + dir, to = Math.floor(rand() * sizes[next]);
+      p.a = from; p.b = nodes[next][to]; p.target = to; p.layer = next; p.t = 0;
+    }
+    function spawn(kind) {
+      for (var k = 0; k < NP; k++) {
+        var p = pulses[k];
+        if (p.alive) continue;
+        p.alive = true; p.kind = kind; p.ttl = 0;
+        var L0 = kind === 'f' ? 0 : 3;
+        p.node = Math.floor(rand() * sizes[L0]);
+        hop(p, L0, kind === 'f' ? 1 : -1);
+        return;
+      }
+    }
+    var spawnT = 0, arrivals = 0, rate = 0, hudT = 0, rateEl = document.getElementById('r-rate'), cur = new THREE.Vector3();
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0, 0.4, 14),
+      update: function (dt) {
+        spawnT += dt;
+        while (spawnT > 0.11) { spawnT -= 0.11; spawn('f'); spawn('b'); }
+        var pa = pp.geometry.attributes.position.array, ca = pp.geometry.attributes.color.array, arrivedNow = 0;
+        pulses.forEach(function (p, k) {
+          var c = COL.amber;
+          if (!p.alive) { pa[k * 3 + 1] = 999; return; }
+          if (p.kind === 'x') {
+            p.ttl -= dt; c = COL.red;
+            if (p.ttl <= 0) { p.alive = false; pa[k * 3 + 1] = 999; return; }
+            cur.copy(p.b);
+          } else {
+            p.t += dt * 1.6;
+            if (p.t >= 1) {
+              p.node = p.target;
+              if (p.kind === 'f') {
+                if (p.layer < 3) hop(p, p.layer, 1); else { p.alive = false; pa[k * 3 + 1] = 999; return; }
+              } else {
+                if (p.layer === SEL && gradMode === 'hard') { p.kind = 'x'; p.ttl = 0.45; p.t = 1; }
+                else if (p.layer === 0) { arrivedNow++; p.alive = false; pa[k * 3 + 1] = 999; return; }
+                else hop(p, p.layer, -1);
+              }
+            }
+            cur.lerpVectors(p.a, p.b, clamp(p.t, 0, 1));
+            c = p.kind === 'f' ? COL.amber : p.kind === 'x' ? COL.red : COL.cyan;
+          }
+          pa[k * 3] = cur.x; pa[k * 3 + 1] = cur.y; pa[k * 3 + 2] = cur.z;
+          ca[k * 3] = c.r; ca[k * 3 + 1] = c.g; ca[k * 3 + 2] = c.b;
+        });
+        pp.geometry.attributes.position.needsUpdate = true; pp.geometry.attributes.color.needsUpdate = true;
+        box.material.color.copy(gradMode === 'hard' ? COL.red : COL.cyan);
+        arrivals += arrivedNow;
+        hudT += dt;
+        if (hudT > 0.5) {
+          var inst = arrivals / hudT; rate = rate * 0.5 + inst * 0.5;
+          arrivals = 0; hudT = 0;
+          rateEl.innerHTML = rate.toFixed(1) + L(' impulsions/s en couche 0 ', ' pulses/s at layer 0 ') + (rate < 0.3 ? '<span class="pill bad">' + L('gradient nul', 'zero gradient') + '</span>' : '<span class="pill ok">' + L('flux rétabli', 'flow restored') + '</span>');
+        }
+        if (!reduce) grp.rotation.y = Math.sin(performance.now() / 4000) * 0.25;
+      }
+    });
+  })();
+
+  scenes.forEach(function (sc) { sc.weight = 0; sc.group.visible = false; scene.add(sc.group); });
+
+  /* ---------- Scroll → scène active ---------- */
+  var secs = Array.prototype.slice.call(document.querySelectorAll('[data-scene]'));
+  var gradSec = document.getElementById('aiov3');
+  var activeIdx = 0, activeDim = 1;
+  function readScroll() {
+    var mid = window.innerHeight / 2;
+    for (var i = 0; i < secs.length; i++) {
+      var r = secs[i].getBoundingClientRect();
+      if (r.top <= mid && r.bottom > mid) { activeIdx = +secs[i].dataset.scene; activeDim = secs[i].dataset.dim ? 0.4 : 1; break; }
+    }
+    if (!userChose) {
+      var g = gradSec.getBoundingClientRect(), local = (mid - g.top) / g.height;
+      if (local > 0.55 && gradMode !== 'ste') setMode('ste');
+      else if (local < 0.35 && gradMode !== 'hard') setMode('hard');
+    }
+  }
+  window.addEventListener('scroll', readScroll, { passive: true });
+
+  var camTarget = new THREE.Vector3(), camDist = 1;
+  function resize() {
+    var w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camDist = w / h < 0.8 ? 1.6 : 1;
+    if (w > 900) camera.setViewOffset(w, h, -w * 0.2, 0, w, h); else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  resize(); readScroll();
+  camera.position.copy(scenes[0].cam).multiplyScalar(camDist);
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000) * (reduce ? 0.5 : 1);
+    last = now;
+    scenes.forEach(function (sc, i) {
+      var target = i === activeIdx ? activeDim : 0;
+      sc.weight += (target - sc.weight) * (1 - Math.exp(-dt * 5));
+      sc.update(dt);
+      sc.group.visible = sc.weight > 0.004;
+      if (sc.group.visible) sc.group.traverse(function (o) { if (o.material) o.material.opacity = o.material.userData.base * sc.weight; });
+    });
+    camTarget.copy(scenes[activeIdx].cam).multiplyScalar(camDist);
+    camera.position.lerp(camTarget, 1 - Math.exp(-dt * 2.5));
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
