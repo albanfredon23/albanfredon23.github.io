@@ -1,6 +1,6 @@
 # Alban Fredon · Projet AIO 
 
-CV bilingue (FR/EN) en Three.js, publié sur https://albanfredon23.github.io.
+publié sur https://albanfredon23.github.io.
 
 Chaque section anime en direct le mécanisme qu'elle décrit :
 
