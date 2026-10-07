@@ -1,4 +1,4 @@
-# Alban Fredon · CV interactif
+# Alban Fredon · Projet AIO 
 
 CV bilingue (FR/EN) en Three.js, publié sur https://albanfredon23.github.io.
 
