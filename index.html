@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Alban Fredon, ingénieur R&amp;D ML : fusion GNSS/INS, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
+<meta name="description" content="Alban Fredon, ingénieur R&amp;D ML : calcul adaptatif pour LLM, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
 <title>Alban · Trajectoires admissibles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,39 +143,30 @@ html:not([data-lang="en"]) [data-l="en"],html[data-lang="en"] [data-l="fr"]{disp
 
   <section data-scene="1" id="aiogps">
     <div class="panel">
-      <p class="eyebrow" data-l="fr">Aiogps · Fusion GNSS/INS</p>
-      <p class="eyebrow" data-l="en">Aiogps · GNSS/INS fusion</p>
-      <h2 data-l="fr">Un EKF à 16 états qui refuse les mesures impossibles</h2>
-      <h2 data-l="en">A 16-state EKF that rejects impossible measurements</h2>
-      <p data-l="fr">La centrale inertielle propage l'état à haute fréquence. Chaque fix GNSS est comparé à la prédiction par un test d'innovation normalisée. Au-delà du seuil χ², la mesure est rejetée : le leurrage est détecté sans interrompre la navigation.</p>
-      <p data-l="en">The inertial unit propagates the state at high rate. Each GNSS fix is checked against the prediction with a normalized innovation test. Above the χ² threshold the measurement is rejected, so spoofing is detected without interrupting navigation.</p>
-      <div class="sv" aria-label="16-dim state vector">
-        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>pⁿ <b data-l="fr">position</b><b data-l="en">position</b></span></div>
-        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>vⁿ <b data-l="fr">vitesse</b><b data-l="en">velocity</b></span></div>
-        <div><div class="cells"><i></i><i></i><i></i><i></i></div><span>q_bⁿ <b data-l="fr">attitude</b><b data-l="en">attitude</b></span></div>
-        <div class="on"><div class="cells"><i></i><i></i><i></i></div><span>b_a <b data-l="fr">accéléro</b><b data-l="en">accel</b></span></div>
-        <div><div class="cells"><i></i><i></i><i></i></div><span>b_g <b data-l="fr">gyro</b><b data-l="en">gyro</b></span></div>
-      </div>
-      <div class="formula" data-l="fr">ν   = z − H x̂⁻          innovation
-S   = H P⁻ Hᵀ + R
-NIS = νᵀ S⁻¹ ν
-rejet si NIS &gt; χ²(3 ; 0,99) = 11,34
-q̇   = ½ q ⊗ [0, ω]       intégration SO(3)</div>
-      <div class="formula" data-l="en">ν   = z − H x̂⁻          innovation
-S   = H P⁻ Hᵀ + R
-NIS = νᵀ S⁻¹ ν
-reject if NIS &gt; χ²(3 ; 0.99) = 11.34
-q̇   = ½ q ⊗ [0, ω]       SO(3) integration</div>
+      <p class="eyebrow" data-l="fr">Aiogps · Calcul adaptatif pour LLM</p>
+      <p class="eyebrow" data-l="en">Aiogps · Adaptive compute for LLMs</p>
+      <h2 data-l="fr">Le GPS du raisonnement&nbsp;: chaque requête prend la trajectoire la plus sobre</h2>
+      <h2 data-l="en">A GPS for reasoning: every query takes the leanest trajectory</h2>
+      <p data-l="fr">Aiogps (moteur AIOTECH44) se place autour du modèle de langage. Une porte adaptative estime la complexité et module l'effort, un faisceau TAP différentiable retient les meilleures trajectoires, la sphère SCG élague celles qui violent les contraintes, et la mémoire différentielle ne garde que k fenêtres de contexte sur 15.</p>
+      <p data-l="en">Aiogps (AIOTECH44 engine) wraps the language model. An adaptive gate estimates complexity and scales the effort, a differentiable TAP beam keeps the best trajectories, the SCG sphere prunes those that violate the constraints, and differential memory keeps only k of 15 context windows.</p>
+      <div class="formula" data-l="fr">effort    = 0,3 + 0,7 · c            porte adaptative
+violation = λ · Σ relu(−t̂ · ĉ)       sphère unité
+élagage si violation &gt; seuil        inférence
+k         = 2 + s · (15 − 2)          mémoire</div>
+      <div class="formula" data-l="en">effort    = 0.3 + 0.7 · c            adaptive gate
+violation = λ · Σ relu(−t̂ · ĉ)       unit sphere
+prune if violation &gt; threshold      inference
+k         = 2 + s · (15 − 2)          memory</div>
       <dl class="hud">
-        <dt>NIS</dt><dd id="g-nis">—</dd>
-        <dt data-l="fr">Statut</dt><dt data-l="en">Status</dt><dd><span id="g-status" class="pill ok">—</span></dd>
-        <dt data-l="fr">Erreur pos.</dt><dt data-l="en">Pos. error</dt><dd id="g-err">—</dd>
-        <dt data-l="fr">b̂_a estimé</dt><dt data-l="en">b̂_a estimate</dt><dd id="g-bias">—</dd>
-        <dt data-l="fr">b_a réel</dt><dt data-l="en">b_a true</dt><dd>(+0.120, −0.050, +0.080) m/s²</dd>
-        <dt data-l="fr">Fixes rejetés</dt><dt data-l="en">Rejected fixes</dt><dd id="g-rej">0</dd>
+        <dt data-l="fr">Complexité</dt><dt data-l="en">Complexity</dt><dd id="g-c">—</dd>
+        <dt data-l="fr">Effort de calcul</dt><dt data-l="en">Compute effort</dt><dd id="g-effort">—</dd>
+        <dt data-l="fr">Nœuds actifs</dt><dt data-l="en">Active nodes</dt><dd id="g-nodes">—</dd>
+        <dt data-l="fr">Trajectoires élaguées</dt><dt data-l="en">Pruned trajectories</dt><dd id="g-pruned">—</dd>
+        <dt data-l="fr">Contexte retenu (k)</dt><dt data-l="en">Context kept (k)</dt><dd id="g-k">—</dd>
+        <dt data-l="fr">Calcul économisé (estimé)</dt><dt data-l="en">Compute saved (estimate)</dt><dd id="g-saved">—</dd>
       </dl>
-      <p class="cap" data-l="fr">Simulation en direct : canal translationnel (cellules bleues, 9 des 16 états), IMU à 60 Hz, GNSS à 5 Hz, σ = 0,35 m. À chaque tour, un leurreur décale les fixes jusqu'à 2,2 m. Points bleus : fixes acceptés, rouges : rejetés. Ellipsoïde de covariance à 2σ. Le trièdre porte l'attitude estimée.</p>
-      <p class="cap" data-l="en">Live simulation: translational channel (blue cells, 9 of the 16 states), IMU at 60 Hz, GNSS at 5 Hz, σ = 0.35 m. On every lap a spoofer drags the fixes by up to 2.2 m. Blue dots: accepted fixes, red: rejected. 2σ covariance ellipsoid. The triad carries the estimated attitude.</p>
+      <p class="cap" data-l="fr">Simulation en direct : requêtes simples et raisonnements alternent. Nœuds bleus : graphe activé par la porte. Lignes : faisceau TAP ; celles qui pointent à l'opposé du vecteur de contraintes (flèche ambre) rougissent et sont élaguées. Barres ambre : fenêtres de contexte retenues. Démo complète sur <a class="ok" href="https://albanfredon23.github.io/Aiogps/">albanfredon23.github.io/Aiogps</a>.</p>
+      <p class="cap" data-l="en">Live simulation: simple queries and reasoning tasks alternate. Blue nodes: graph activated by the gate. Lines: TAP beam; those pointing away from the constraint vector (amber arrow) turn red and are pruned. Amber bars: context windows kept. Full demo at <a class="ok" href="https://albanfredon23.github.io/Aiogps/">albanfredon23.github.io/Aiogps</a>.</p>
     </div>
   </section>
 
@@ -292,11 +283,11 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
           <li>Logique continue, t-norme de Gödel</li>
           <li>Gumbel-Softmax, estimateur Straight-Through</li>
           <li>Traçabilité des décisions</li></ul></div>
-        <div><span class="src">Aiogps</span><h3>Estimation et navigation</h3><ul>
-          <li>EKF à 16 états, fusion GNSS/INS</li>
-          <li>Quaternions, intégration sur SO(3)</li>
-          <li>Estimation des biais IMU</li>
-          <li>Tests d'intégrité χ², détection de leurrage</li></ul></div>
+        <div><span class="src">Aiogps</span><h3>Calcul adaptatif pour LLM</h3><ul>
+          <li>Porte de complexité, effort de 30 à 100 %</li>
+          <li>Faisceau TAP différentiable (Gumbel-Softmax, top-k)</li>
+          <li>Élagage géométrique SCG sur la sphère unité</li>
+          <li>Mémoire différentielle, 4 agents spécialisés</li></ul></div>
         <div><span class="src">AIO-SecEng</span><h3>Backend et SecOps</h3><ul>
           <li>Python, FastAPI, asyncio, Pydantic</li>
           <li>Docker, pytest, couverture totale</li>
@@ -314,11 +305,11 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
           <li>Continuous logic, Gödel t-norm</li>
           <li>Gumbel-Softmax, Straight-Through estimator</li>
           <li>Decision traceability</li></ul></div>
-        <div><span class="src">Aiogps</span><h3>Estimation and navigation</h3><ul>
-          <li>16-state EKF, GNSS/INS fusion</li>
-          <li>Quaternions, integration on SO(3)</li>
-          <li>IMU bias estimation</li>
-          <li>χ² integrity tests, spoofing detection</li></ul></div>
+        <div><span class="src">Aiogps</span><h3>Adaptive compute for LLMs</h3><ul>
+          <li>Complexity gate, 30 to 100 % effort</li>
+          <li>Differentiable TAP beam (Gumbel-Softmax, top-k)</li>
+          <li>Geometric SCG pruning on the unit sphere</li>
+          <li>Differential memory, 4 specialised agents</li></ul></div>
         <div><span class="src">AIO-SecEng</span><h3>Backend and SecOps</h3><ul>
           <li>Python, FastAPI, asyncio, Pydantic</li>
           <li>Docker, pytest, full coverage</li>
@@ -371,11 +362,11 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
       <h2 data-l="en">5 years freelancing, 3 of them exclusively in AI</h2>
       <div class="timeline" data-l="fr">
         <div><b>5 ans</b><div><h3>Ingénieur freelance</h3><p>Développement backend Python, architectures asynchrones conteneurisées, sécurité applicative et bug bounty.</p></div></div>
-        <div><b>3 ans</b><div><h3>Ingénieur R&amp;D IA, exclusivement</h3><p>Conception d'AIOTECH (middleware Green AI et SCG), d'Aiogps (fusion GNSS/INS) et d'AIO-SecEng (SecOps).</p></div></div>
+        <div><b>3 ans</b><div><h3>Ingénieur R&amp;D IA, exclusivement</h3><p>Conception d'AIOTECH (middleware Green AI et SCG), d'Aiogps (calcul adaptatif pour LLM) et d'AIO-SecEng (SecOps).</p></div></div>
       </div>
       <div class="timeline" data-l="en">
         <div><b>5 yrs</b><div><h3>Freelance engineer</h3><p>Python backend development, containerized asynchronous architectures, application security and bug bounty.</p></div></div>
-        <div><b>3 yrs</b><div><h3>AI R&amp;D engineer, exclusively</h3><p>Built AIOTECH (Green AI middleware and SCG), Aiogps (GNSS/INS fusion) and AIO-SecEng (SecOps).</p></div></div>
+        <div><b>3 yrs</b><div><h3>AI R&amp;D engineer, exclusively</h3><p>Built AIOTECH (Green AI middleware and SCG), Aiogps (adaptive compute for LLMs) and AIO-SecEng (SecOps).</p></div></div>
       </div>
       <div class="meta"><span data-l="fr">Formation : autodidacte</span><span data-l="en">Education: self-taught</span><span data-l="fr">Langues : français, anglais</span><span data-l="en">Languages: French, English</span></div>
     </div>
@@ -548,107 +539,126 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
     });
   })();
 
-  /* ===== 1 · Aiogps : KF translationnel p,v,b_a + gating χ² ===== */
+  /* ===== 1 · Aiogps : porte adaptative, faisceau TAP, élagage SCG, mémoire k ===== */
   (function () {
-    var grp = new THREE.Group();
-    var SPD = 0.45, DT = 1 / 60, SIG_GNSS = 0.35, R = SIG_GNSS * SIG_GNSS, SIG_A = 0.08, GATE = 11.345;
-    var B_TRUE = [0.12, -0.05, 0.08];
-    function truthP(s) { return [5 * Math.sin(s), 0.6 * Math.sin(3 * s), 3 * Math.sin(2 * s)]; }
-    function truthV(s) { return [SPD * 5 * Math.cos(s), SPD * 1.8 * Math.cos(3 * s), SPD * 6 * Math.cos(2 * s)]; }
-    function truthA(s) { var k = SPD * SPD; return [-k * 5 * Math.sin(s), -k * 5.4 * Math.sin(3 * s), -k * 12 * Math.sin(2 * s)]; }
-    var tp = [], i;
-    for (i = 0; i <= 400; i++) { var q = truthP(i / 400 * Math.PI * 2); tp.push(new THREE.Vector3(q[0], q[1], q[2])); }
-    grp.add(polyline(tp, COL.fg, 0.2));
-    var grid = new THREE.GridHelper(14, 14, COL.line, COL.line);
-    grid.position.y = -1.6; grid.material.transparent = true; grid.material.depthWrite = false; grid.material.userData.base = 0.7;
-    grp.add(grid);
-
-    var p0 = truthP(0), v0 = truthV(0);
-    var kf = [0, 1, 2].map(function (ax) { return { x: [p0[ax], v0[ax], 0], P: [[0.25, 0, 0], [0, 0.25, 0], [0, 0, 0.04]] }; });
-    function mul(A, B) { var C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) C[r][c] = A[r][0] * B[0][c] + A[r][1] * B[1][c] + A[r][2] * B[2][c]; return C; }
-    function mulBt(A, B) { var C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) C[r][c] = A[r][0] * B[c][0] + A[r][1] * B[c][1] + A[r][2] * B[c][2]; return C; }
-    var F = [[1, DT, -0.5 * DT * DT], [0, 1, -DT], [0, 0, 1]];
-    var Q = [1e-7, SIG_A * SIG_A * DT, 2e-7];
-    function predict(f, am) {
-      var u = am - f.x[2];
-      f.x[0] += f.x[1] * DT + 0.5 * u * DT * DT;
-      f.x[1] += u * DT;
-      f.P = mulBt(mul(F, f.P), F);
-      f.P[0][0] += Q[0]; f.P[1][1] += Q[1]; f.P[2][2] += Q[2];
+    var grp = new THREE.Group(), i;
+    var Q = new THREE.Vector3(-6.2, 0, 0), GATE_X = -4.4, G = new THREE.Vector3(-2, 0, 0), S = new THREE.Vector3(2.4, 0, 0), RAD = 1.5, MEM_X = 5.6;
+    var NODES = 40, BEAMS = 18, SLOTS = 15, DOCS = 20;
+    // Requête et liaisons
+    var qd = dynPoints(1, 0.5, 1, COL.fg); qd.geometry.attributes.position.array.set([Q.x, Q.y, Q.z]); qd.geometry.setDrawRange(0, 1); grp.add(qd);
+    grp.add(polyline([Q, new THREE.Vector3(GATE_X, 0, 0), new THREE.Vector3(G.x - 1.5, 0, 0)], COL.line, 0.9));
+    grp.add(polyline([new THREE.Vector3(S.x + RAD, 0, 0), new THREE.Vector3(MEM_X - 0.6, 0, 0)], COL.line, 0.9));
+    // Porte de calcul adaptative : anneau dont l'ouverture suit l'effort
+    var ring = [], gateMat;
+    for (i = 0; i <= 64; i++) { var a = i / 64 * Math.PI * 2; ring.push(new THREE.Vector3(GATE_X, Math.cos(a) * 0.8, Math.sin(a) * 0.8)); }
+    var gate = polyline(ring, COL.cyan, 0.9); gateMat = gate.material; grp.add(gate);
+    // Graphe de connaissances : nœuds allumés selon la complexité
+    var nodes = dynPoints(NODES, 0.24, 1), np = nodes.geometry.attributes.position.array, act = [];
+    for (i = 0; i < NODES; i++) {
+      var y = 1 - 2 * (i + 0.5) / NODES, r = Math.sqrt(1 - y * y), th = i * 2.399963, rr = 1.1 + rand() * 0.4;
+      np[i * 3] = G.x + Math.cos(th) * r * rr * 0.8; np[i * 3 + 1] = y * rr; np[i * 3 + 2] = Math.sin(th) * r * rr;
+      act.push(rand());
     }
-    function correct(f, y, S) {
-      var row = f.P[0].slice(), K = [f.P[0][0] / S, f.P[1][0] / S, f.P[2][0] / S];
-      for (var r = 0; r < 3; r++) { f.x[r] += K[r] * y; for (var c = 0; c < 3; c++) f.P[r][c] -= K[r] * row[c]; }
+    nodes.geometry.setDrawRange(0, NODES); grp.add(nodes);
+    // Sphère SCG (méridiens et parallèles) et vecteur de contraintes
+    var lat, lon, pts;
+    for (lat = -60; lat <= 60; lat += 30) {
+      pts = []; var r0 = Math.cos(lat * Math.PI / 180) * RAD, y0 = Math.sin(lat * Math.PI / 180) * RAD;
+      for (i = 0; i <= 48; i++) pts.push(new THREE.Vector3(S.x + Math.cos(i / 48 * Math.PI * 2) * r0, y0, Math.sin(i / 48 * Math.PI * 2) * r0));
+      grp.add(polyline(pts, COL.muted, 0.2));
     }
+    for (lon = 0; lon < 180; lon += 45) {
+      pts = []; var la = lon * Math.PI / 180;
+      for (i = 0; i <= 48; i++) { var t2 = i / 48 * Math.PI * 2; pts.push(new THREE.Vector3(S.x + Math.cos(t2) * Math.cos(la) * RAD, Math.sin(t2) * RAD, Math.cos(t2) * Math.sin(la) * RAD)); }
+      grp.add(polyline(pts, COL.muted, 0.2));
+    }
+    var cDir = new THREE.Vector3(-0.5, 0.65, 0.55).normalize();
+    var arrow = dynLine(2, COL.amber, 1); arrow.geometry.setDrawRange(0, 2); grp.add(arrow);
+    var tip = dynPoints(1, 0.34, 1, COL.amber); tip.geometry.setDrawRange(0, 1); grp.add(tip);
+    // Faisceau TAP : trajectoires du graphe vers la sphère
+    var beams = [];
+    for (i = 0; i < BEAMS; i++) {
+      var ln = dynLine(24, COL.cyan, 0.6); ln.geometry.setDrawRange(0, 24); grp.add(ln);
+      beams.push({ line: ln, dir: new THREE.Vector3(), kept: true });
+    }
+    // Mémoire différentielle : 15 fenêtres de contexte, k allumées
+    var slots = [];
+    for (i = 0; i < SLOTS; i++) {
+      var yy = -1.4 + i * 0.2, sl = polyline([new THREE.Vector3(MEM_X - 0.5, yy, 0), new THREE.Vector3(MEM_X + 0.5, yy, 0)], COL.line, 0.9);
+      grp.add(sl); slots.push(sl);
+    }
+    var out = dynPoints(1, 0.5, 1, COL.amber); out.geometry.attributes.position.array.set([MEM_X + 1.6, 0, 0]); out.geometry.setDrawRange(0, 1); grp.add(out);
+    var pulse = dynPoints(1, 0.36, 1, COL.fg); pulse.geometry.setDrawRange(0, 1); grp.add(pulse);
 
-    var TRAIL = 260, est = dynLine(TRAIL, COL.amber, 0.95), estN = 0;
-    grp.add(est);
-    var NF = 70, fixes = dynPoints(NF, 0.2, 0.95), fixIdx = 0, fixN = 0;
-    grp.add(fixes);
-    var ell = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), mat('MeshBasicMaterial', { color: COL.cyan, wireframe: true }, 0.35));
-    grp.add(ell);
-    var triad = new THREE.Group();
-    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)], COL.amber, 1));
-    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(0, 0.6, 0)], COL.cyan, 1));
-    triad.add(polyline([new THREE.Vector3(), new THREE.Vector3(0, 0, 0.6)], COL.fg, 1));
-    grp.add(triad);
-
-    var s = 0, acc = 0, step = 0, lastNis = 0, lastRej = false, lastSpoof = false, rejected = 0, hudT = 0;
-    var X = new THREE.Vector3(1, 0, 0), vdir = new THREE.Vector3();
-    var el = { nis: document.getElementById('g-nis'), st: document.getElementById('g-status'), err: document.getElementById('g-err'), bias: document.getElementById('g-bias'), rej: document.getElementById('g-rej') };
-    function fmt(x) { return (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(3); }
-
-    function simStep() {
-      s += SPD * DT; step++;
-      var a = truthA(s);
-      for (var ax = 0; ax < 3; ax++) predict(kf[ax], a[ax] + B_TRUE[ax] + SIG_A * gauss());
-      if (step % 12 === 0) {
-        var p = truthP(s), sm = s % (Math.PI * 2), spoof = sm > 2.4 && sm < 3.7;
-        var off = spoof ? Math.min(1, (sm - 2.4) / 0.35) * 2.2 : 0;
-        var dir = [0.78, 0, 0.62], z = [], y = [], S = [], nis = 0;
-        for (ax = 0; ax < 3; ax++) {
-          z[ax] = p[ax] + SIG_GNSS * gauss() + off * dir[ax];
-          S[ax] = kf[ax].P[0][0] + R; y[ax] = z[ax] - kf[ax].x[0]; nis += y[ax] * y[ax] / S[ax];
-        }
-        var ok = nis < GATE;
-        if (ok) for (ax = 0; ax < 3; ax++) correct(kf[ax], y[ax], S[ax]); else rejected++;
-        lastNis = nis; lastRej = !ok; lastSpoof = spoof;
-        var fp = fixes.geometry.attributes.position.array, fc = fixes.geometry.attributes.color.array, c = ok ? COL.cyan : COL.red;
-        fp[fixIdx * 3] = z[0]; fp[fixIdx * 3 + 1] = z[1]; fp[fixIdx * 3 + 2] = z[2];
-        fc[fixIdx * 3] = c.r; fc[fixIdx * 3 + 1] = c.g; fc[fixIdx * 3 + 2] = c.b;
-        fixIdx = (fixIdx + 1) % NF; fixN = Math.min(NF, fixN + 1);
-        fixes.geometry.attributes.position.needsUpdate = true; fixes.geometry.attributes.color.needsUpdate = true;
-        fixes.geometry.setDrawRange(0, fixN);
+    var el = { c: document.getElementById('g-c'), e: document.getElementById('g-effort'), n: document.getElementById('g-nodes'), p: document.getElementById('g-pruned'), k: document.getElementById('g-k'), s: document.getElementById('g-saved') };
+    var st = { c: 0.5, effort: 0.65, on: 0, kept: 0, k: 0, saved: 0 }, simple = false, T = 0, CYCLE = 4.5;
+    var v = new THREE.Vector3(), w = new THREE.Vector3();
+    function nf(x, d) { var s = x.toFixed(d); return LANG === 'fr' ? s.replace('.', ',') : s; }
+    function hud() {
+      el.c.textContent = nf(st.c, 2) + ' · ' + (simple ? L('requête simple', 'simple query') : L('raisonnement', 'reasoning'));
+      el.e.textContent = Math.round(st.effort * 100) + ' %';
+      el.n.textContent = st.on + ' / ' + NODES;
+      el.p.textContent = (BEAMS - st.kept) + ' / ' + BEAMS;
+      el.k.textContent = st.k + ' / ' + DOCS;
+      el.s.textContent = nf(st.saved * 100, 1) + ' %';
+    }
+    function query() {
+      simple = !simple;
+      st.c = simple ? 0.12 + rand() * 0.25 : 0.6 + rand() * 0.35;
+      st.effort = 0.3 + 0.7 * st.c;
+      var thr = 1 - st.effort, on = 0, ca = nodes.geometry.attributes.color.array;
+      for (i = 0; i < NODES; i++) {
+        var lit = act[i] >= thr, c = lit ? COL.cyan : COL.line; if (lit) on++;
+        ca[i * 3] = c.r; ca[i * 3 + 1] = c.g; ca[i * 3 + 2] = c.b;
       }
-    }
-
-    scenes.push({
-      group: grp, cam: new THREE.Vector3(0, 10, 14),
-      update: function (dt) {
-        acc += dt;
-        while (acc >= DT) { simStep(); acc -= DT; }
-        var ex = kf[0].x[0], ey = kf[1].x[0], ez = kf[2].x[0];
-        var arr = est.geometry.attributes.position.array;
-        arr.copyWithin(3, 0, arr.length - 3); arr[0] = ex; arr[1] = ey; arr[2] = ez;
-        estN = Math.min(TRAIL, estN + 1); est.geometry.setDrawRange(0, estN);
-        est.geometry.attributes.position.needsUpdate = true;
-        ell.position.set(ex, ey, ez);
-        ell.scale.set(Math.max(0.05, 2 * Math.sqrt(kf[0].P[0][0])), Math.max(0.05, 2 * Math.sqrt(kf[1].P[0][0])), Math.max(0.05, 2 * Math.sqrt(kf[2].P[0][0])));
-        triad.position.set(ex, ey, ez);
-        vdir.set(kf[0].x[1], kf[1].x[1], kf[2].x[1]);
-        if (vdir.lengthSq() > 1e-6) triad.quaternion.setFromUnitVectors(X, vdir.normalize());
-        hudT += dt;
-        if (hudT > 0.1) {
-          hudT = 0;
-          var tp2 = truthP(s);
-          el.nis.textContent = lastNis.toFixed(2) + L(' / seuil 11.34', ' / threshold 11.34');
-          if (lastRej) { el.st.textContent = L('Leurrage détecté · fix rejeté', 'Spoofing detected · fix rejected'); el.st.className = 'pill bad'; }
-          else if (lastSpoof) { el.st.textContent = L('Leurrage en cours · sous le seuil', 'Spoofing under way · below threshold'); el.st.className = 'pill warn'; }
-          else { el.st.textContent = L('Intègre', 'Healthy'); el.st.className = 'pill ok'; }
-          el.err.textContent = Math.hypot(ex - tp2[0], ey - tp2[1], ez - tp2[2]).toFixed(2) + ' m';
-          el.bias.textContent = '(' + fmt(kf[0].x[2]) + ', ' + fmt(kf[1].x[2]) + ', ' + fmt(kf[2].x[2]) + ') m/s²';
-          el.rej.textContent = String(rejected);
+      nodes.geometry.attributes.color.needsUpdate = true; st.on = on;
+      cDir.set(gauss(), gauss() * 0.6 + 0.5, gauss()).normalize();
+      var ap = arrow.geometry.attributes.position.array; v.copy(cDir).multiplyScalar(RAD * 1.45).add(S);
+      ap.set([S.x, S.y, S.z, v.x, v.y, v.z]); arrow.geometry.attributes.position.needsUpdate = true;
+      tip.geometry.attributes.position.array.set([v.x, v.y, v.z]); tip.geometry.attributes.position.needsUpdate = true;
+      var kept = 0, nb = Math.max(4, Math.round(BEAMS * st.effort));
+      beams.forEach(function (b, j) {
+        b.dir.set(gauss(), gauss(), gauss()).normalize();
+        b.active = j < nb;
+        // Violation angulaire relu(−t̂·ĉ) : l'hémisphère opposé aux contraintes est élagué.
+        b.kept = b.dir.dot(cDir) > -0.15;
+        if (b.active && b.kept) kept++;
+        var p = b.line.geometry.attributes.position.array, end = w.copy(b.dir).multiplyScalar(RAD).add(S), lift = gauss() * 0.5;
+        for (var u = 0; u < 24; u++) {
+          var f = u / 23; v.lerpVectors(G, end, f); v.y += Math.sin(Math.PI * f) * lift; v.z += Math.sin(Math.PI * f) * lift * 0.6;
+          p[u * 3] = v.x; p[u * 3 + 1] = v.y; p[u * 3 + 2] = v.z;
         }
+        b.line.geometry.attributes.position.needsUpdate = true;
+        b.line.material.color.copy(COL.cyan); b.line.material.userData.base = b.active ? 0.6 : 0;
+      });
+      st.kept = kept + (BEAMS - nb);
+      var conf = kept / nb;
+      st.k = Math.max(2, Math.min(15, Math.floor(2 + conf * (0.35 + 0.65 * st.c) * 13)));
+      slots.forEach(function (sl, j) { sl.material.color.copy(j < st.k ? COL.amber : COL.line); sl.material.userData.base = j < st.k ? 1 : 0.6; });
+      // Calcul économisé : formule de FLOPs du démonstrateur Aiogps (50 nœuds, 20 documents, d = 256).
+      st.saved = Math.max(0, 1 - (Math.pow(Math.floor(50 * st.c), 2) + st.k * st.k) / (2500 + DOCS * DOCS));
+      gateMat.userData.base = 0.4 + 0.6 * st.effort;
+      hud();
+    }
+    query();
+    langHooks.push(hud);
+    grp.scale.setScalar(0.78); grp.position.x = -0.6;
+    scenes.push({
+      group: grp, cam: new THREE.Vector3(0, 3.2, 14),
+      update: function (dt) {
+        T += dt;
+        // Élagage visible à mi-cycle : les trajectoires en violation rougissent puis s'éteignent.
+        var judged = T > CYCLE * 0.45;
+        beams.forEach(function (b) {
+          if (!b.active || b.kept) return;
+          b.line.material.color.copy(judged ? COL.red : COL.cyan);
+          b.line.material.userData.base = judged ? Math.max(0.12, 0.7 - (T - CYCLE * 0.45) * 0.4) : 0.6;
+        });
+        var f = (T % CYCLE) / CYCLE, pa = pulse.geometry.attributes.position.array;
+        if (f < 0.25) v.lerpVectors(Q, G, f / 0.25); else if (f < 0.55) v.lerpVectors(G, S, (f - 0.25) / 0.3); else v.lerpVectors(S, out.position.set(MEM_X + 1.6, 0, 0), (f - 0.55) / 0.45);
+        pa[0] = v.x; pa[1] = v.y; pa[2] = v.z; pulse.geometry.attributes.position.needsUpdate = true;
+        if (T >= CYCLE) { T = 0; query(); }
+        if (!reduce) grp.rotation.y = Math.sin(performance.now() / 5000) * 0.18;
       }
     });
   })();
