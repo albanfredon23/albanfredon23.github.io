@@ -8,7 +8,7 @@ Chaque section anime en direct le mécanisme qu'elle décrit :
 - **AIOTECH · SCG** : géodésiques sur la sphère, calottes interdites, agrégation par t-norme de Gödel.
 - **AIOTECH · Green AI** : sortie anticipée par couche (AdaptiveComputeGate).
 - **AIO v3** : effondrement des gradients sous argmax, rétabli par Gumbel-Softmax + STE.
-- **AIO-SecEng** : masquage PII validé par l'algorithme de Luhn.
+
 
 Section « Projets en ligne » : liens vers les sites publiés sur GitHub Pages
 ([AIOTECH](https://albanfredon23.github.io/aiotech/), [Aiosearch](https://albanfredon23.github.io/Aiosearch/),
