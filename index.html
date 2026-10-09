@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Alban Fredon, ingénieur R&amp;D ML : calcul adaptatif pour LLM, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
+<meta name="description" content="Alban Fredon, ingénieur IA &amp; développeur full-stack : calcul adaptatif pour LLM, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
 <title>Alban · Trajectoires admissibles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,8 +121,8 @@ html:not([data-lang="en"]) [data-l="en"],html[data-lang="en"] [data-l="fr"]{disp
 <main>
   <section data-scene="0" id="intro">
     <div class="panel">
-      <p class="eyebrow" data-l="fr">CV · Ingénieur R&amp;D Senior · ML et architecture logicielle</p>
-      <p class="eyebrow" data-l="en">Résumé · Senior R&amp;D Engineer · ML and software architecture</p>
+      <p class="eyebrow" data-l="fr">CV · Ingénieur IA &amp; développeur full-stack</p>
+      <p class="eyebrow" data-l="en">Résumé · AI engineer &amp; full-stack developer</p>
       <h1>Alban Fredon
         <span class="sub" data-l="fr">Des trajectoires admissibles plutôt que des prédictions aveugles.</span>
         <span class="sub" data-l="en">Admissible trajectories instead of blind predictions.</span></h1>
@@ -196,8 +196,8 @@ k         = 2 + s · (15 − 2)          memory</div>
       <p class="eyebrow">AIOTECH · Green AI</p>
       <h2 data-l="fr">Calculer seulement ce qui est nécessaire</h2>
       <h2 data-l="en">Compute only what is needed</h2>
-      <p data-l="fr">L'AdaptiveComputeGate arrête la propagation d'un token dès que sa confiance franchit le seuil de sortie. Les tokens faciles quittent le réseau tôt, les difficiles le traversent en entier. Avec une allocation k-dynamique du contexte RAG, le middleware réduit les FLOPs de 40 à 60 % (estimation) et allège l'empreinte VRAM.</p>
-      <p data-l="en">The AdaptiveComputeGate stops a token's propagation as soon as its confidence crosses the exit threshold. Easy tokens leave the network early, hard ones go all the way through. Combined with k-dynamic allocation of the RAG context, the middleware cuts FLOPs by 40 to 60 % (estimate) and lowers the VRAM footprint.</p>
+      <p data-l="fr">L'AdaptiveComputeGate arrête la propagation d'un token dès que sa confiance franchit le seuil de sortie. Les tokens faciles quittent le réseau tôt, les difficiles le traversent en entier. Avec une allocation k-dynamique du contexte RAG, le middleware n'envoie au modèle que le contexte utile : −85 % de tokens de contexte mesurés sur le banc d'AIOTECH, avec 100 % des documents nécessaires conservés.</p>
+      <p data-l="en">The AdaptiveComputeGate stops a token's propagation as soon as its confidence crosses the exit threshold. Easy tokens leave the network early, hard ones go all the way through. Combined with k-dynamic allocation of the RAG context, the middleware only sends the model the context it needs: −85 % context tokens measured on the AIOTECH benchmark, with 100 % of the needed documents kept.</p>
       <div class="formula" data-l="fr">sortie à la couche ℓ  si  max softmax(W_ℓ h_ℓ) ≥ θ_ℓ
 FLOPs ∝ Σ_tokens ℓ_sortie   (au lieu de N · L)
 k(q) = min { k : Σ_{i≤k} s_i ≥ ρ }   contexte RAG</div>
@@ -276,7 +276,7 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
         <div><span class="src">AIOTECH</span><h3>Inférence frugale</h3><ul>
           <li>Calcul adaptatif, sortie anticipée (AdaptiveComputeGate)</li>
           <li>Allocation k-dynamique de la mémoire de contexte</li>
-          <li>Réduction FLOPs estimée de 40 à 60 %, empreinte VRAM des pipelines RAG</li>
+          <li>−85 % de tokens de contexte mesurés, rappel de 100 %</li>
           <li>PyTorch, vectorisation, profilage</li></ul></div>
         <div><span class="src">AIOTECH · AIO v3</span><h3>Raisonnement neuro-symbolique</h3><ul>
           <li>Spherical Constraint Graph, élagage géométrique</li>
@@ -298,7 +298,7 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
         <div><span class="src">AIOTECH</span><h3>Frugal inference</h3><ul>
           <li>Adaptive compute, early exit (AdaptiveComputeGate)</li>
           <li>k-dynamic context memory allocation</li>
-          <li>Estimated 40 to 60 % FLOPs reduction, lower VRAM footprint for RAG pipelines</li>
+          <li>−85 % context tokens measured, 100 % recall</li>
           <li>PyTorch, vectorization, profiling</li></ul></div>
         <div><span class="src">AIOTECH · AIO v3</span><h3>Neuro-symbolic reasoning</h3><ul>
           <li>Spherical Constraint Graph, geometric pruning</li>
