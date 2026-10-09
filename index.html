@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Alban Fredon, ingénieur R&amp;D ML : calcul adaptatif pour LLM, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
+<meta name="description" content="Alban Fredon, ingénieur IA &amp; développeur full-stack : calcul adaptatif pour LLM, raisonnement neuro-symbolique, Green AI. CV interactif en Three.js.">
 <title>Alban · Trajectoires admissibles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,16 +121,16 @@ html:not([data-lang="en"]) [data-l="en"],html[data-lang="en"] [data-l="fr"]{disp
 <main>
   <section data-scene="0" id="intro">
     <div class="panel">
-      <p class="eyebrow" data-l="fr">CV · Ingénieur R&amp;D Senior · ML et architecture logicielle</p>
-      <p class="eyebrow" data-l="en">Résumé · Senior R&amp;D Engineer · ML and software architecture</p>
+      <p class="eyebrow" data-l="fr">CV · Ingénieur IA &amp; développeur full-stack</p>
+      <p class="eyebrow" data-l="en">Résumé · AI engineer &amp; full-stack developer</p>
       <h1>Alban Fredon
         <span class="sub" data-l="fr">Des trajectoires admissibles plutôt que des prédictions aveugles.</span>
         <span class="sub" data-l="en">Admissible trajectories instead of blind predictions.</span></h1>
       <p class="lede" data-l="fr">Je conçois des middlewares cognitifs et des moteurs de raisonnement neuro-symboliques. Chaque sortie doit respecter des invariants physiques ou logiques, rester traçable et consommer le moins de calcul possible.</p>
       <p class="lede" data-l="en">I design cognitive middleware and neuro-symbolic reasoning engines. Every output must satisfy physical or logical invariants, stay traceable and use as little compute as possible.</p>
       <div class="meta">
-        <span data-l="fr">Freelance · 5 ans d'expérience, dont 3 ans exclusivement en IA</span>
-        <span data-l="en">Freelance · 5 years of experience, 3 of them exclusively in AI</span>
+        <span data-l="fr">7 ans d'expérience · 5 ans en entreprise, 2 ans en freelance</span>
+        <span data-l="en">7 years of experience · 5 in industry, 2 freelance</span>
         <span data-l="fr">Français · Anglais</span>
         <span data-l="en">French · English</span>
       </div>
@@ -196,8 +196,8 @@ k         = 2 + s · (15 − 2)          memory</div>
       <p class="eyebrow">AIOTECH · Green AI</p>
       <h2 data-l="fr">Calculer seulement ce qui est nécessaire</h2>
       <h2 data-l="en">Compute only what is needed</h2>
-      <p data-l="fr">L'AdaptiveComputeGate arrête la propagation d'un token dès que sa confiance franchit le seuil de sortie. Les tokens faciles quittent le réseau tôt, les difficiles le traversent en entier. Avec une allocation k-dynamique du contexte RAG, le middleware réduit les FLOPs de 40 à 60 % (estimation) et allège l'empreinte VRAM.</p>
-      <p data-l="en">The AdaptiveComputeGate stops a token's propagation as soon as its confidence crosses the exit threshold. Easy tokens leave the network early, hard ones go all the way through. Combined with k-dynamic allocation of the RAG context, the middleware cuts FLOPs by 40 to 60 % (estimate) and lowers the VRAM footprint.</p>
+      <p data-l="fr">L'AdaptiveComputeGate arrête la propagation d'un token dès que sa confiance franchit le seuil de sortie. Les tokens faciles quittent le réseau tôt, les difficiles le traversent en entier. Avec une allocation k-dynamique du contexte RAG, le middleware n'envoie au modèle que le contexte utile : −85 % de tokens de contexte mesurés sur le banc d'AIOTECH, avec 100 % des documents nécessaires conservés.</p>
+      <p data-l="en">The AdaptiveComputeGate stops a token's propagation as soon as its confidence crosses the exit threshold. Easy tokens leave the network early, hard ones go all the way through. Combined with k-dynamic allocation of the RAG context, the middleware only sends the model the context it needs: −85 % context tokens measured on the AIOTECH benchmark, with 100 % of the needed documents kept.</p>
       <div class="formula" data-l="fr">sortie à la couche ℓ  si  max softmax(W_ℓ h_ℓ) ≥ θ_ℓ
 FLOPs ∝ Σ_tokens ℓ_sortie   (au lieu de N · L)
 k(q) = min { k : Σ_{i≤k} s_i ≥ ρ }   contexte RAG</div>
@@ -276,7 +276,7 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
         <div><span class="src">AIOTECH</span><h3>Inférence frugale</h3><ul>
           <li>Calcul adaptatif, sortie anticipée (AdaptiveComputeGate)</li>
           <li>Allocation k-dynamique de la mémoire de contexte</li>
-          <li>Réduction FLOPs estimée de 40 à 60 %, empreinte VRAM des pipelines RAG</li>
+          <li>−85 % de tokens de contexte mesurés, rappel de 100 %</li>
           <li>PyTorch, vectorisation, profilage</li></ul></div>
         <div><span class="src">AIOTECH · AIO v3</span><h3>Raisonnement neuro-symbolique</h3><ul>
           <li>Spherical Constraint Graph, élagage géométrique</li>
@@ -298,7 +298,7 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
         <div><span class="src">AIOTECH</span><h3>Frugal inference</h3><ul>
           <li>Adaptive compute, early exit (AdaptiveComputeGate)</li>
           <li>k-dynamic context memory allocation</li>
-          <li>Estimated 40 to 60 % FLOPs reduction, lower VRAM footprint for RAG pipelines</li>
+          <li>−85 % context tokens measured, 100 % recall</li>
           <li>PyTorch, vectorization, profiling</li></ul></div>
         <div><span class="src">AIOTECH · AIO v3</span><h3>Neuro-symbolic reasoning</h3><ul>
           <li>Spherical Constraint Graph, geometric pruning</li>
@@ -358,15 +358,15 @@ forward: y = y_hard    backward: ∂y/∂π = ∂y_soft/∂π</div>
     <div class="panel wide">
       <p class="eyebrow" data-l="fr">Parcours</p>
       <p class="eyebrow" data-l="en">Experience</p>
-      <h2 data-l="fr">5 ans de freelance, dont 3 ans exclusivement en IA</h2>
-      <h2 data-l="en">5 years freelancing, 3 of them exclusively in AI</h2>
+      <h2 data-l="fr">7 ans d'expérience : 5 ans en entreprise, 2 ans en freelance</h2>
+      <h2 data-l="en">7 years of experience: 5 in industry, 2 freelance</h2>
       <div class="timeline" data-l="fr">
-        <div><b>5 ans</b><div><h3>Ingénieur freelance</h3><p>Développement backend Python, architectures asynchrones conteneurisées, sécurité applicative et bug bounty.</p></div></div>
-        <div><b>3 ans</b><div><h3>Ingénieur R&amp;D IA, exclusivement</h3><p>Conception d'AIOTECH (middleware Green AI et SCG), d'Aiogps (calcul adaptatif pour LLM) et d'AIO-SecEng (SecOps).</p></div></div>
+        <div><b>5 ans</b><div><h3>En entreprise</h3><p>Développement backend Python, architectures asynchrones conteneurisées et sécurité applicative.</p></div></div>
+        <div><b>2 ans</b><div><h3>Freelance · IA et full-stack</h3><p>Conception d'AIOTECH (middleware Green AI et SCG), d'Aiogps (calcul adaptatif pour LLM) et d'AIO-SecEng (SecOps), bug bounty.</p></div></div>
       </div>
       <div class="timeline" data-l="en">
-        <div><b>5 yrs</b><div><h3>Freelance engineer</h3><p>Python backend development, containerized asynchronous architectures, application security and bug bounty.</p></div></div>
-        <div><b>3 yrs</b><div><h3>AI R&amp;D engineer, exclusively</h3><p>Built AIOTECH (Green AI middleware and SCG), Aiogps (adaptive compute for LLMs) and AIO-SecEng (SecOps).</p></div></div>
+        <div><b>5 yrs</b><div><h3>In industry</h3><p>Python backend development, containerized asynchronous architectures and application security.</p></div></div>
+        <div><b>2 yrs</b><div><h3>Freelance · AI and full-stack</h3><p>Built AIOTECH (Green AI middleware and SCG), Aiogps (adaptive compute for LLMs) and AIO-SecEng (SecOps); bug bounty.</p></div></div>
       </div>
       <div class="meta"><span data-l="fr">Formation : autodidacte</span><span data-l="en">Education: self-taught</span><span data-l="fr">Langues : français, anglais</span><span data-l="en">Languages: French, English</span></div>
     </div>
